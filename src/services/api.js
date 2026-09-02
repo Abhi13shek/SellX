@@ -47,6 +47,22 @@ export const api = {
     return res.data;
   },
 
+  async updateProductAutomation(id, automationRules) {
+    const res = await request(`/products/${id}/automation`, {
+      method: "PUT",
+      body: JSON.stringify({ automationRules }),
+    });
+    return res.data;
+  },
+
+  async simulateProductAutomation(id, { testOfferPrice, testLeadTimeDays }) {
+    const res = await request(`/products/${id}/automation/simulate`, {
+      method: "POST",
+      body: JSON.stringify({ testOfferPrice, testLeadTimeDays }),
+    });
+    return res.data;
+  },
+
   // Deals
   async getDeals(params = {}) {
     const query = new URLSearchParams();

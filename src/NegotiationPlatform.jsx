@@ -34,6 +34,7 @@ import { AddItemModal } from "./components/modals/AddItemModal.jsx";
 import { AcceptConfirmModal } from "./components/modals/AcceptConfirmModal.jsx";
 import { DeclineConfirmModal } from "./components/modals/DeclineConfirmModal.jsx";
 import { PaymentModal } from "./components/modals/PaymentModal.jsx";
+import { AutomationRulesModal } from "./components/modals/AutomationRulesModal.jsx";
 
 export default function App() {
   const [theme, setTheme] = useState("light");
@@ -42,6 +43,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("catalog");
   const [deals, setDeals] = useState(INITIAL_DEALS);
   const [activeDealId, setActiveDealId] = useState(null);
+  const [automationProduct, setAutomationProduct] = useState(null);
 
   const [rfqProduct, setRfqProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
@@ -320,6 +322,22 @@ export default function App() {
     pushNotification(`Payment received for ${deals.find((d) => d.id === dealId)?.product?.name || dealId}.`, { icon: CheckCircle2, tone: "brass", dealId });
   };
 
+  const saveAutomationRules = async (productId, rules) => {
+    setSellerProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, automationRules: rules } : p))
+    );
+    setBackendProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, automationRules: rules } : p))
+    );
+    pushNotification(`⚡ Automation rules updated for item.`, { icon: CheckCircle2, tone: "teal" });
+
+    try {
+      await api.updateProductAutomation(productId, rules);
+    } catch (e) {
+      console.warn("Backend sync notice:", e);
+    }
+  };
+
   const toggleCart = (product) => {
     setCartItems((prev) => {
       const inCart = prev.some((p) => p.id === product.id);
@@ -437,6 +455,7 @@ export default function App() {
                 onQuickCounter={quickCounter}
                 onQuickReject={(dealId) => requestDecline(dealId, "seller")}
                 onAddItem={() => setAddItemOpen(true)}
+                onOpenAutomationRules={(product) => setAutomationProduct(product)}
               />
             )}
 
@@ -499,6 +518,13 @@ export default function App() {
         open={addItemOpen}
         onClose={() => setAddItemOpen(false)}
         onSubmit={addSellerProduct}
+      />
+
+      <AutomationRulesModal
+        isOpen={!!automationProduct}
+        product={automationProduct}
+        onClose={() => setAutomationProduct(null)}
+        onSaveRules={saveAutomationRules}
       />
 
       <AcceptConfirmModal

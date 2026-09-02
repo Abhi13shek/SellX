@@ -28,7 +28,8 @@ export const dealController = {
 
   createDeal(req, res, next) {
     try {
-      let product = ProductModel.findById(productId);
+      const { productId, buyerName, initialOffer } = req.body;
+      let product = productId ? ProductModel.findById(productId) : null;
       if (!product && req.body.product) {
         product = ProductModel.create(req.body.product);
       }
@@ -36,11 +37,14 @@ export const dealController = {
         return res.status(404).json({ success: false, error: { message: "Product not found", statusCode: 404 } });
       }
 
-      const deal = DealModel.create({
+      let deal = DealModel.create({
         product,
         buyerName: buyerName || "You (Buyer)",
         initialOffer,
       });
+
+      // Apply seller automation rules if defined
+      deal = dealService.evaluateNewDealAutomation(deal);
 
       res.status(201).json({ success: true, data: deal });
     } catch (err) {

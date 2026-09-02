@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { PackagePlus } from "lucide-react";
-import { PrimaryButton } from "../common/Buttons.jsx";
+import { PackagePlus, Bot, Sliders, Zap } from "lucide-react";
+import { PrimaryButton, GhostButton } from "../common/Buttons.jsx";
 import { ProductImageTile } from "../common/ProductImageTile.jsx";
 import { SellerDealCard } from "./SellerDealCard.jsx";
 import { STAGES } from "../../data/constants.js";
@@ -16,6 +16,7 @@ export function SellerDesk({
   onQuickCounter,
   onQuickReject,
   onAddItem,
+  onOpenAutomationRules,
 }) {
   const grouped = useMemo(() => {
     const g = { "New Requests": [], "In Negotiation": [], "Pending Acceptance": [], "Closed/Won": [] };
@@ -30,39 +31,64 @@ export function SellerDesk({
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--paper)]">Seller Trade Desk</h1>
           <p className="text-sm text-[var(--mist)] mt-1">
-            Inbound buyer offers, active negotiations, and closed deals for your pre-owned listings.
+            Inbound buyer offers, active negotiations, and automated floor price protection rules.
           </p>
         </div>
-        <PrimaryButton tone="teal" icon={PackagePlus} onClick={onAddItem}>
-          List used item
-        </PrimaryButton>
+        <div className="flex items-center gap-2.5">
+          <PrimaryButton tone="teal" icon={PackagePlus} onClick={onAddItem}>
+            List used item
+          </PrimaryButton>
+        </div>
       </div>
 
       {myListings.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--mist)] mb-3">Your listings</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--mist)]">Your active listings</h3>
+            <span className="text-xs text-[var(--mist-dim)]">{myListings.length} listed items</span>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {myListings.map((p) => {
               const health = marginHealth(p.basePrice, p.cost, 0.24);
+              const hasRules = p.automationRules?.enabled;
+
               return (
                 <div
                   key={p.id}
-                  className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 hover:border-[var(--teal)]/40 transition-colors"
+                  className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 hover:border-[var(--teal)]/40 transition-all flex flex-col justify-between shadow-sm"
                 >
-                  <ProductImageTile category={p.category} Icon={p.icon} image={p.image} size="lg" />
-                  <div className="font-display font-semibold text-sm text-[var(--paper)] mt-3 leading-snug">
-                    {p.name}
+                  <div>
+                    <ProductImageTile category={p.category} Icon={p.icon} image={p.image} size="lg" />
+                    <div className="font-display font-semibold text-sm text-[var(--paper)] mt-3 leading-snug">
+                      {p.name}
+                    </div>
+                    <div className="text-[11px] font-mono text-[var(--mist-dim)] mt-0.5">{p.sku}</div>
+                    
+                    <div className="flex items-center justify-between mt-2.5">
+                      <span className="font-mono text-sm font-bold text-[var(--price)]">{fmtINR(p.basePrice)}</span>
+                      <span
+                        className="flex items-center gap-1 text-[11px] font-semibold"
+                        style={{ color: healthColor[health.level] }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: healthColor[health.level] }} />
+                        {(health.m * 100).toFixed(0)}% margin
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-[11px] font-mono text-[var(--mist-dim)] mt-0.5">{p.sku}</div>
-                  <div className="flex items-center justify-between mt-2.5">
-                    <span className="font-mono text-sm font-bold text-[var(--price)]">{fmtINR(p.basePrice)}</span>
-                    <span
-                      className="flex items-center gap-1 text-[11px] font-semibold"
-                      style={{ color: healthColor[health.level] }}
+
+                  <div className="mt-4 pt-3 border-t border-[var(--line)]/60">
+                    <button
+                      onClick={() => onOpenAutomationRules && onOpenAutomationRules(p)}
+                      className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                        hasRules
+                          ? "bg-[var(--teal)]/10 text-[var(--teal)] border-[var(--teal)]/30 hover:bg-[var(--teal)]/20"
+                          : "bg-[var(--surface2)] text-[var(--mist)] border-[var(--line)] hover:text-[var(--paper)] hover:bg-[var(--surface3)]"
+                      }`}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: healthColor[health.level] }} />
-                      {(health.m * 100).toFixed(0)}% margin
-                    </span>
+                      <Bot size={13} />
+                      <span>{hasRules ? "⚡ Auto-Rules Active" : "Configure Bot"}</span>
+                    </button>
                   </div>
                 </div>
               );
