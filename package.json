@@ -3,12 +3,19 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan.bold,green.bold\" \"npm run server\" \"npm run client\"",
+    "client": "vite",
+    "server": "node server/index.js",
     "build": "vite build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "concurrently": "^10.0.5",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "lucide-react": "^0.400.0",
+    "morgan": "^1.12.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
