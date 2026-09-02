@@ -44,6 +44,7 @@ export default function App() {
   const [deals, setDeals] = useState(INITIAL_DEALS);
   const [activeDealId, setActiveDealId] = useState(null);
   const [automationProduct, setAutomationProduct] = useState(null);
+  const [selectedCity, setSelectedCity] = useState("blr");
 
   const [rfqProduct, setRfqProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
@@ -414,6 +415,11 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={goToTab}
         sellerAuthed={sellerAuthed}
+        selectedCity={selectedCity}
+        onSelectCity={(cityId) => {
+          setSelectedCity(cityId);
+          pushNotification(`Location updated to ${cityId.toUpperCase()}.`, { icon: Info, tone: "teal" });
+        }}
         onSignOut={() => {
           setSellerAuthed(false);
           setRole("buyer");
@@ -438,7 +444,9 @@ export default function App() {
                 products={allProducts}
                 onRequestQuote={(p) => setRfqProduct(p)}
                 onToggleCart={toggleCart}
-                cartIds={cartIds}
+                cartItems={cartItems}
+                selectedCity={selectedCity}
+                onSelectCity={setSelectedCity}
                 onOpenProduct={(p) => setDetailProduct(p)}
               />
             )}

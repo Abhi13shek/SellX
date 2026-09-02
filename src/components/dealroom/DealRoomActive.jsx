@@ -257,6 +257,9 @@ export function DealRoomActive({
                   <span className="text-xs text-[var(--mist)] flex items-center gap-1">
                     <Building2 size={11} /> {role === "buyer" ? deal?.sellerName : deal?.buyerName}
                   </span>
+                  <span className="text-xs text-[var(--mist-dim)] flex items-center gap-1 font-mono">
+                    <MapPin size={11} className="text-[var(--teal)]" /> {product.supplier?.includes("(") ? product.supplier.split("(")[1]?.replace(")", "") : "Indiranagar, BLR"}
+                  </span>
                 </div>
                 <h2 className="font-display font-bold text-sm sm:text-base text-[var(--paper)] truncate">
                   {product.name}
