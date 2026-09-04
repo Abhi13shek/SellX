@@ -2,654 +2,352 @@
 
 ### B2B Negotiation & Deal Management Platform
 
-> **Negotiate better. Track everything. Close smarter.**
+**SellX** is a modern B2B negotiation platform designed to make buying and selling more transparent, structured, and efficient.
 
-SellX is a modern B2B negotiation and deal management platform designed to simplify the way buyers and sellers discover products, negotiate prices, manage offers, and close deals.
+It provides a shared environment where **buyers and sellers can negotiate prices, exchange offers and counteroffers, manage delivery terms, track deals, and monitor margins** in real time.
 
-Instead of managing negotiations across emails, calls, spreadsheets, and messaging platforms, SellX brings the complete negotiation lifecycle into one centralized digital workspace.
-
----
-
-<p align="center">
-
-**🛒 Product Discovery**   →  
-**💬 Negotiation**   →  
-**🤝 Deal Management**   →  
-**💰 Margin Tracking**   →  
-**✅ Deal Closure**
-
-</p>
+Instead of relying on scattered conversations and spreadsheets, SellX brings the entire negotiation workflow into a single **digital deal room**.
 
 ---
 
-## 📸 Product Preview
-
-<p align="center">
-  <img src="docs/images/dashboard.png" alt="SellX Dashboard" width="900"/>
-</p>
-
-### Dashboard
-
-The SellX dashboard provides a centralized view of products, active negotiations, deals, pipeline activity, and business performance.
-
----
-
-# ✨ Key Features
-
-<table>
-<tr>
-<td width="50%">
+## ✨ Features
 
 ### 🤝 Real-Time Negotiation
 
-* Create offers
-* Send counteroffers
-* Track negotiation history
-* Compare pricing
-* Negotiate commercial terms
-* Confirm final agreements
+* Buyers and sellers can exchange offers and counteroffers.
+* Negotiate pricing and commercial terms.
+* Track the complete negotiation flow.
+* Confirmation steps help prevent accidental decisions.
 
-</td>
+### 🏢 Deal Room
 
-<td width="50%">
+A shared workspace for managing individual negotiations.
 
-### 🏢 Digital Deal Room
-
-A centralized workspace for every negotiation.
-
-* Deal information
-* Offer history
-* Counteroffers
-* Delivery terms
-* Deal status
-* Final confirmation
-
-</td>
-</tr>
-
-<tr>
-<td>
+* View deal information
+* Track current offers
+* Review negotiation history
+* Manage delivery terms
+* Monitor deal status
+* Confirm finalized decisions
 
 ### 📊 Seller Pipeline
 
-Track every opportunity from initial interest to final closure.
+A centralized view of seller-side opportunities and active negotiations.
 
-* Active opportunities
-* Negotiation stages
-* Deal progress
-* Pipeline visibility
-* Deal status tracking
+* Track active deals
+* Monitor deal progress
+* Organize opportunities
+* Review pipeline status
 
-</td>
+### 💰 Live Margin Tracking
 
-<td>
+SellX helps sellers understand the financial impact of negotiations.
 
-### 💰 Margin Tracking
-
-Understand the financial impact of every negotiation.
-
-* Selling price
-* Cost
-* Negotiated price
-* Expected margin
-* Deal profitability
-
-</td>
-</tr>
-
-<tr>
-<td>
+* Track selling price
+* Monitor costs
+* Calculate margins
+* Evaluate the effect of negotiated prices
 
 ### 📦 Product Catalog
 
-Browse and manage products available for negotiation.
+Manage and browse products that are available for negotiation.
 
 * Product information
-* Pricing
+* Pricing details
 * Product discovery
-* Product-specific deals
-
-</td>
-
-<td>
+* Product-specific negotiation workflows
 
 ### 🛡️ Decision Confirmation
 
-Important deal actions use confirmation steps to reduce accidental decisions and provide a controlled negotiation workflow.
+Important deal actions use confirmation steps to reduce accidental changes and provide a more deliberate negotiation workflow.
 
-</td>
-</tr>
-</table>
+### 📈 Trade Desk Dashboard
+
+A centralized interface for monitoring negotiations, products, deals, and business activity.
 
 ---
 
-# 🔄 How SellX Works
+## 🧩 How SellX Works
 
 ```text
-                    ┌──────────────────┐
-                    │      Buyer       │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │ Product Catalog  │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   Create Offer   │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   Deal Room      │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │ Counter Offer    │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │ Negotiate Terms  │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │ Review Margin    │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │ Confirm Deal     │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   Deal Closed    │
-                    └──────────────────┘
+Buyer
+  │
+  │ Selects Product
+  ▼
+Product Catalog
+  │
+  │ Creates / Receives Offer
+  ▼
+Deal Room
+  │
+  ├── Offer
+  ├── Counteroffer
+  ├── Price Negotiation
+  └── Delivery Terms
+  │
+  ▼
+Confirmation
+  │
+  ▼
+Deal Closed
+  │
+  ▼
+Margin & Pipeline Tracking
 ```
 
 ---
 
-# 🖥️ Product Showcase
+## 🏗️ Architecture
 
-## 📊 Dashboard
-
-<p align="center">
-  <img src="docs/images/dashboard.png" alt="SellX Dashboard" width="900"/>
-</p>
-
-The dashboard gives users a high-level overview of their business activity, negotiations, deals, and pipeline.
-
----
-
-## 📦 Product Catalog
-
-<p align="center">
-  <img src="docs/images/product-catalog.png" alt="SellX Product Catalog" width="900"/>
-</p>
-
-The product catalog allows buyers and sellers to discover products and initiate negotiations.
-
----
-
-## 🤝 Deal Room
-
-<p align="center">
-  <img src="docs/images/deal-room.png" alt="SellX Deal Room" width="900"/>
-</p>
-
-The Deal Room acts as the central workspace for individual negotiations, allowing participants to review offers, counteroffers, pricing, and delivery terms.
-
----
-
-## 💬 Negotiation Interface
-
-<p align="center">
-  <img src="docs/images/negotiation.png" alt="SellX Negotiation" width="900"/>
-</p>
-
-The negotiation interface allows buyers and sellers to exchange offers and counteroffers while maintaining a clear negotiation history.
-
----
-
-## 📈 Seller Pipeline
-
-<p align="center">
-  <img src="docs/images/seller-pipeline.png" alt="SellX Seller Pipeline" width="900"/>
-</p>
-
-The seller pipeline provides visibility into active opportunities and the current stage of each deal.
-
----
-
-# 📊 Analytics & Insights
-
-SellX can provide visual insights into deal activity, negotiation performance, and profitability.
-
-### Deal Pipeline
+SellX follows a **frontend + backend architecture**:
 
 ```text
-Prospecting
-     │
-     ▼
-Negotiation
-     │
-     ▼
-Counter Offer
-     │
-     ▼
-Agreement
-     │
-     ▼
-Closed
+┌─────────────────────────────┐
+│        React Frontend       │
+│                             │
+│  Catalog │ Deal Room │      │
+│  Seller  │ Dashboard │ UI   │
+└──────────────┬──────────────┘
+               │
+               │ API
+               ▼
+┌─────────────────────────────┐
+│       Express Backend       │
+│                             │
+│  REST APIs │ Business Logic │
+│  Products  │ Deals          │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│       Data / Storage        │
+│                             │
+│  Initialization │ Persistence│
+└─────────────────────────────┘
 ```
 
-### Example Analytics
-
-> The following visualization represents the type of analytics that can be integrated into the platform.
-
-```text
-Deal Value
-
-Jan  ███████████████
-Feb  ███████████████████
-Mar  █████████████████████
-Apr  █████████████████████████
-May  ███████████████████████████
-```
-
-Recommended analytics for the platform include:
-
-* 📈 Deal value over time
-* 💰 Margin by deal
-* 📊 Deals by negotiation stage
-* 🤝 Successful vs unsuccessful negotiations
-* 📦 Product performance
-* 🏷️ Pricing comparisons
-* 📋 Pipeline conversion
+The backend initializes its database/storage layer when the server starts and exposes APIs including product and deal endpoints. It also handles graceful shutdown and saves database state before termination.
 
 ---
 
-# 💰 Negotiation & Margin Flow
+## 🛠️ Tech Stack
 
-One of SellX's core concepts is connecting negotiation decisions with their financial impact.
+### Frontend
 
-```text
-                Initial Price
-                     │
-                     ▼
-              Buyer Offer
-                     │
-                     ▼
-             Seller Counteroffer
-                     │
-                     ▼
-             Negotiated Price
-                     │
-                     ▼
-                   Cost
-                     │
-                     ▼
-             ┌───────────────┐
-             │ Final Margin  │
-             └───────────────┘
-```
+* **React 18**
+* **Vite**
+* **Tailwind CSS**
+* **Lucide React**
+* JavaScript / JSX
 
-This allows sellers to understand how pricing decisions affect the profitability of a deal.
+### Backend
 
----
+* **Node.js**
+* **Express 5**
+* **CORS**
+* **dotenv**
+* **Morgan**
 
-# 🏗️ System Architecture
+### Development Tools
 
-```text
-┌───────────────────────────────────────────────┐
-│                  SELLX CLIENT                 │
-│                                               │
-│  React + Vite + Tailwind CSS                 │
-│                                               │
-│  ┌──────────┐ ┌──────────┐ ┌──────────────┐ │
-│  │ Catalog  │ │ Deal Room│ │ Seller       │ │
-│  │          │ │          │ │ Pipeline     │ │
-│  └──────────┘ └──────────┘ └──────────────┘ │
-│                                               │
-│              Dashboard & UI                  │
-└───────────────────────┬───────────────────────┘
-                        │
-                        │ REST API
-                        ▼
-┌───────────────────────────────────────────────┐
-│                EXPRESS SERVER                 │
-│                                               │
-│              Node.js + Express                │
-│                                               │
-│       ┌────────────┐    ┌────────────┐       │
-│       │ Products   │    │   Deals    │       │
-│       │ API        │    │   API      │       │
-│       └────────────┘    └────────────┘       │
-└───────────────────────┬───────────────────────┘
-                        │
-                        ▼
-┌───────────────────────────────────────────────┐
-│                DATA / STORAGE                 │
-└───────────────────────────────────────────────┘
-```
+* Vite
+* PostCSS
+* Autoprefixer
+* Concurrently
+
+The repository's package configuration confirms React, Vite, Tailwind CSS, Express, CORS, dotenv, Morgan, Lucide React, and Concurrently as core dependencies/tooling.
 
 ---
 
-# 🧩 Project Structure
+## 📁 Project Structure
 
 ```text
 SellX/
 │
-├── 📁 server/
-│   ├── 📁 src/
-│   └── 📄 index.js
+├── server/
+│   ├── src/
+│   └── index.js
 │
-├── 📁 src/
+├── src/
+│   ├── components/
+│   │   ├── catalog/
+│   │   ├── common/
+│   │   ├── dealroom/
+│   │   ├── layout/
+│   │   ├── modals/
+│   │   └── seller/
 │   │
-│   ├── 📁 components/
-│   │   ├── 📁 catalog/
-│   │   ├── 📁 common/
-│   │   ├── 📁 dealroom/
-│   │   ├── 📁 layout/
-│   │   ├── 📁 modals/
-│   │   └── 📁 seller/
+│   ├── data/
+│   ├── hooks/
+│   │   ├── useCountdown.js
+│   │   └── useTick.js
 │   │
-│   ├── 📁 data/
-│   ├── 📁 hooks/
-│   │   ├── 📄 useCountdown.js
-│   │   └── 📄 useTick.js
-│   │
-│   ├── 📁 services/
-│   ├── 📁 utils/
-│   │
-│   ├── 📄 NegotiationPlatform.jsx
-│   ├── 📄 index.css
-│   └── 📄 main.jsx
+│   ├── services/
+│   ├── utils/
+│   ├── NegotiationPlatform.jsx
+│   ├── index.css
+│   └── main.jsx
 │
-├── 📄 index.html
-├── 📄 package.json
-├── 📄 package-lock.json
-└── 📄 vite.config.js
+├── index.html
+├── package.json
+├── package-lock.json
+└── vite.config.js
 ```
 
----
-
-# 🛠️ Tech Stack
-
-### Frontend
-
-<p>
-<img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white" />
-<img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" />
-<img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwindcss&logoColor=white" />
-<img src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black" />
-</p>
-
-### Backend
-
-<p>
-<img src="https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white" />
-<img src="https://img.shields.io/badge/Express-000000?logo=express&logoColor=white" />
-</p>
-
-### Tools & Libraries
-
-* Vite
-* Express
-* CORS
-* dotenv
-* Morgan
-* Lucide React
-* Concurrently
-* PostCSS
-* Autoprefixer
+The frontend is organized into feature-focused component groups such as `catalog`, `dealroom`, `seller`, `layout`, `common`, and `modals`, with separate hooks, services, utilities, and data modules.
 
 ---
 
-# 🚀 Getting Started
+## 🚀 Getting Started
 
-## 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Abhi13shek/SellX.git
 cd SellX
 ```
 
-## 2. Install Dependencies
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-## 3. Start Development Environment
+### 3. Start the application
 
 ```bash
 npm run dev
 ```
 
-This starts the frontend and backend development processes.
+This starts both the frontend and backend development processes concurrently.
 
-## 4. Run Frontend Only
+### 4. Open the application
 
-```bash
-npm run client
-```
-
-## 5. Run Backend Only
-
-```bash
-npm run server
-```
+The Vite development server will provide the frontend URL, while the Express server runs separately according to the configured environment.
 
 ---
 
-# 📜 Available Scripts
+## ⚙️ Available Scripts
 
-| Command          | Purpose                       |
-| ---------------- | ----------------------------- |
-| `npm run dev`    | Start frontend and backend    |
-| `npm run client` | Start Vite frontend           |
-| `npm run server` | Start Express backend         |
-| `npm run build`  | Build frontend for production |
+| Command          | Description                         |
+| ---------------- | ----------------------------------- |
+| `npm run dev`    | Start frontend and backend together |
+| `npm run client` | Start Vite frontend                 |
+| `npm run server` | Start Express backend               |
+| `npm run build`  | Build the frontend for production   |
 
----
-
-# 🔌 API Endpoints
-
-The current backend provides core endpoints for the application.
-
-| Method | Endpoint        | Description         |
-| ------ | --------------- | ------------------- |
-| GET    | `/health`       | Check server health |
-| GET    | `/api/products` | Retrieve products   |
-| GET    | `/api/deals`    | Retrieve deals      |
+These scripts are defined in the project's `package.json`.
 
 ---
 
-# 🎯 Use Cases
+## 🔌 Backend APIs
 
-SellX can be used for a variety of B2B commerce workflows:
-
-* 🏭 Supplier–buyer negotiations
-* 📦 Wholesale purchasing
-* 💰 Price negotiations
-* 🤝 Commercial deal management
-* 📊 Seller opportunity tracking
-* 📈 Margin monitoring
-* 🧾 Structured deal approvals
-* 🔄 Offer and counteroffer management
-
----
-
-# 💡 Problem Statement
-
-Traditional B2B negotiations are often fragmented across multiple platforms.
+The backend currently exposes core endpoints for the SellX platform, including:
 
 ```text
-Email
-  +
-Phone Calls
-  +
-WhatsApp / Messaging
-  +
-Spreadsheets
-  +
-CRM
-  ↓
-Fragmented Negotiation
+GET /health
+GET /api/products
+GET /api/deals
 ```
 
-This creates problems such as:
-
-* Lack of negotiation visibility
-* Difficult offer tracking
-* Unclear deal status
-* Manual margin calculations
-* Scattered communication
-* Higher chances of mistakes
-
-### SellX solves this by bringing the workflow together:
-
-```text
-              ┌───────────────────┐
-              │      SELLX        │
-              └─────────┬─────────┘
-                        │
-       ┌────────────────┼────────────────┐
-       │                │                │
-       ▼                ▼                ▼
-   Products         Negotiation       Deals
-       │                │                │
-       └────────────────┼────────────────┘
-                        │
-                        ▼
-                 Margin Tracking
-                        │
-                        ▼
-                   Deal Closure
-```
+The server logs these endpoints when it starts successfully.
 
 ---
 
-# 🔐 Design Principles
+## 🎯 Core Use Cases
 
-### Transparency
+SellX can be used for:
 
-Every important step in a negotiation should be easy to understand and track.
+* B2B product negotiations
+* Wholesale purchasing
+* Supplier–buyer negotiations
+* Price negotiations
+* Commercial deal management
+* Seller opportunity tracking
+* Margin monitoring
+* Structured deal approvals
 
-### Control
+---
 
-Critical actions should require deliberate confirmation.
+## 💡 Why SellX?
 
-### Efficiency
+Traditional B2B negotiations often happen across:
 
+* Emails
+* Phone calls
+* Messaging applications
+* Spreadsheets
+* Separate CRM systems
+
+This can make it difficult to understand **what was offered, what changed, who agreed to what, and whether the final deal is profitable**.
+
+SellX brings these activities into one structured platform.
+
+> **Negotiate better. Track everything. Close smarter.**
+
+---
+
+## 🔐 Design Principles
+
+SellX is built around a few key principles:
+
+**Transparency**
+Every important negotiation step should be visible and understandable.
+
+**Control**
+Critical actions require deliberate confirmation.
+
+**Efficiency**
 Buyers and sellers should be able to negotiate without unnecessary complexity.
 
-### Visibility
+**Visibility**
+Deal status, pipeline activity, and margins should be easy to understand.
 
-Deal status, pipeline activity, and financial impact should remain visible.
-
-### Modularity
-
-The application is structured into reusable components and services to make future expansion easier.
+**Flexibility**
+Negotiations should support offers, counteroffers, pricing changes, and delivery terms.
 
 ---
 
-# 🗺️ Roadmap
+## 🧪 Development
 
-### 🔐 Authentication
+The project uses a modular component architecture on the frontend and a dedicated Express backend.
 
-* [ ] User registration
-* [ ] Login
-* [ ] Role-based access
-* [ ] Buyer / Seller profiles
-
-### 💬 Communication
-
-* [ ] Real-time messaging
-* [ ] Negotiation notifications
-* [ ] Email notifications
-
-### 📊 Analytics
-
-* [ ] Advanced deal analytics
-* [ ] Revenue dashboard
-* [ ] Margin analytics
-* [ ] Conversion analytics
-* [ ] Seller performance metrics
-
-### 📄 Documents
-
-* [ ] Generate quotations
-* [ ] Generate invoices
-* [ ] PDF deal summaries
-* [ ] Downloadable negotiation history
-
-### ☁️ Infrastructure
-
-* [ ] Cloud database
-* [ ] Production deployment
-* [ ] CI/CD pipeline
-* [ ] Monitoring & logging
-
-### 📱 Experience
-
-* [ ] Mobile optimization
-* [ ] Responsive dashboards
-* [ ] Improved accessibility
+Frontend functionality is separated into reusable feature components, hooks, services, data, and utility modules, making the application easier to extend and maintain.
 
 ---
 
-# 🔮 Future Vision
+## 🗺️ Future Improvements
 
-SellX aims to evolve from a negotiation interface into a complete **B2B deal operating system**.
+Potential areas for future development include:
 
-```text
-             PRODUCT DISCOVERY
-                    │
-                    ▼
-              NEGOTIATION
-                    │
-                    ▼
-              DEAL ROOM
-                    │
-                    ▼
-             APPROVAL FLOW
-                    │
-                    ▼
-              DEAL CLOSURE
-                    │
-                    ▼
-             ORDER MANAGEMENT
-                    │
-                    ▼
-              ANALYTICS
-                    │
-                    ▼
-            BUSINESS INSIGHTS
-```
+* 🔐 User authentication & role-based access
+* 💬 Real-time buyer/seller messaging
+* 🔔 Deal notifications
+* 📜 Complete negotiation audit logs
+* 📊 Advanced analytics
+* 📄 PDF quotation generation
+* 💳 Payment integration
+* ☁️ Cloud database integration
+* 🔄 WebSocket-based live negotiation updates
+* 👥 Multi-user organizations
+* 📱 Responsive/mobile-first improvements
+* 🚀 Production deployment & CI/CD
 
 ---
 
-# 🤝 Contributing
+## 🤝 Contributing
 
-Contributions, ideas, and improvements are welcome.
+Contributions are welcome.
 
 ```bash
+# Fork the repository
 # Create a feature branch
 git checkout -b feature/your-feature
 
-# Make your changes
-git add .
-
-# Commit
+# Commit your changes
 git commit -m "Add your feature"
 
-# Push
+# Push your branch
 git push origin feature/your-feature
 ```
 
@@ -657,37 +355,25 @@ Then open a Pull Request.
 
 ---
 
-# 📄 License
+## 📄 License
 
-This project is currently available as a public GitHub repository.
+This project is currently available as an open repository on GitHub.
 
 See the repository for the latest licensing and usage information.
 
 ---
 
-# 👨‍💻 Author
+## 👨‍💻 Author
 
-### Abhishek
+**Abhishek**
 
 GitHub:
 https://github.com/Abhi13shek
 
 ---
 
-# ⭐ Support
+## ⭐ Support
 
-If you like **SellX**, consider giving the repository a ⭐ on GitHub.
+If you find SellX useful, consider giving the repository a ⭐ on GitHub.
 
-Your support helps the project grow!
-
----
-
-<p align="center">
-
-### 💼 SellX
-
-**Negotiate better. Track everything. Close smarter.**
-
-Built with ❤️ using React, Vite, Node.js & Express.
-
-</p>
+**SellX — A smarter way to negotiate B2B deals.**
