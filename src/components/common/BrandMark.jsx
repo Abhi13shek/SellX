@@ -1,6 +1,6 @@
 import React, { useId } from "react";
 
-export function BrandMark({ size = "md", wordmark = true }) {
+export function BrandMark({ size = "md", wordmark = true, inverted = false }) {
   const gradId = useId();
   const dims = { sm: 28, md: 36, lg: 52, xl: 72 };
   const px = dims[size] || dims.md;
@@ -26,32 +26,32 @@ export function BrandMark({ size = "md", wordmark = true }) {
             y2="40"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor="#0474C4" />
-            <stop offset="100%" stopColor="#06457F" />
+            <stop offset="0%" stopColor={inverted ? "#FFFFFF" : "#0474C4"} />
+            <stop offset="100%" stopColor={inverted ? "#BAE6FD" : "#06457F"} />
           </linearGradient>
           <linearGradient
             id={`sx-grad-2-${gradId}`}
             x1="40"
             y1="8"
             x2="8"
-            y2="40"
             gradientUnits="userSpaceOnUse"
+            y2="40"
           >
-            <stop offset="0%" stopColor="#A8C4EC" />
-            <stop offset="100%" stopColor="#0474C4" />
+            <stop offset="0%" stopColor={inverted ? "#38BDF8" : "#A8C4EC"} />
+            <stop offset="100%" stopColor={inverted ? "#FFFFFF" : "#0474C4"} />
           </linearGradient>
         </defs>
 
         {/* Soft rounded icon badge */}
-        <rect width="48" height="48" rx="13" fill={`url(#sx-grad-1-${gradId})`} opacity="0.16" />
+        <rect width="48" height="48" rx="13" fill={inverted ? "#FFFFFF" : `url(#sx-grad-1-${gradId})`} opacity={inverted ? "0.2" : "0.16"} />
         <rect
           x="0.75"
           y="0.75"
           width="46.5"
           height="46.5"
           rx="12.25"
-          stroke={`url(#sx-grad-1-${gradId})`}
-          strokeOpacity="0.35"
+          stroke={inverted ? "#FFFFFF" : `url(#sx-grad-1-${gradId})`}
+          strokeOpacity={inverted ? "0.5" : "0.35"}
           strokeWidth="1.5"
           fill="none"
         />
@@ -82,10 +82,12 @@ export function BrandMark({ size = "md", wordmark = true }) {
 
       {wordmark && (
         <span className={`sx-wordmark ${textSizes[size] || textSizes.md} font-extrabold leading-none tracking-tight`}>
-          <span style={{ color: "var(--paper)" }}>Sell</span>
+          <span style={{ color: inverted ? "#FFFFFF" : "var(--paper)" }}>Sell</span>
           <span
             style={{
-              background: "linear-gradient(135deg, #0474C4 0%, #A8C4EC 100%)",
+              background: inverted
+                ? "linear-gradient(135deg, #BAE6FD 0%, #38BDF8 100%)"
+                : "linear-gradient(135deg, #0474C4 0%, #A8C4EC 100%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",

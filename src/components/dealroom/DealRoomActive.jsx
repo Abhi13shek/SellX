@@ -90,8 +90,9 @@ export function DealRoomActive({
 
   const handleSend = () => {
     if (!chatText.trim()) return;
+    const textToSend = chatText.trim();
     if (typeof onSendMessage === "function") {
-      onSendMessage(chatText.trim());
+      onSendMessage(textToSend, deal?.id);
     }
     setChatText("");
   };
@@ -257,9 +258,6 @@ export function DealRoomActive({
                   <span className="text-xs text-[var(--mist)] flex items-center gap-1">
                     <Building2 size={11} /> {role === "buyer" ? deal?.sellerName : deal?.buyerName}
                   </span>
-                  <span className="text-xs text-[var(--mist-dim)] flex items-center gap-1 font-mono">
-                    <MapPin size={11} className="text-[var(--teal)]" /> {product.supplier?.includes("(") ? product.supplier.split("(")[1]?.replace(")", "") : "Indiranagar, BLR"}
-                  </span>
                 </div>
                 <h2 className="font-display font-bold text-sm sm:text-base text-[var(--paper)] truncate">
                   {product.name}
@@ -313,13 +311,12 @@ export function DealRoomActive({
                 value={chatText}
                 onChange={(e) => setChatText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder={disabled ? "Negotiation is closed." : "Type a message or bargaining counter..."}
-                disabled={disabled}
-                className="flex-1 bg-[var(--surface)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--paper)] outline-none focus:border-[var(--teal)] disabled:opacity-50 placeholder:text-[var(--mist-dim)] transition-colors"
+                placeholder="Type a message or counter note..."
+                className="flex-1 bg-[var(--surface)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--paper)] outline-none focus:border-[var(--teal)] placeholder:text-[var(--mist-dim)] transition-colors shadow-inner"
               />
               <button
                 onClick={handleSend}
-                disabled={disabled || !chatText.trim()}
+                disabled={!chatText.trim()}
                 className="w-10 h-10 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] flex items-center justify-center disabled:opacity-40 hover:bg-[var(--teal-dim)] transition-all shrink-0 shadow-sm active:scale-95"
                 title="Send message"
               >

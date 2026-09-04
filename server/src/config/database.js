@@ -59,6 +59,14 @@ class Database {
     }
   }
 
+  reset() {
+    this.data.products = [...SEED_PRODUCTS];
+    this.data.deals = getSeedDeals(this.data.products);
+    this.saveSync();
+    logger.success(`Reset database with ${this.data.products.length} products and ${this.data.deals.length} deals.`);
+    return this.data;
+  }
+
   saveSync() {
     try {
       if (!fs.existsSync(ENV.DATA_DIR)) {

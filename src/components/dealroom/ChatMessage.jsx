@@ -33,7 +33,11 @@ export function ChatMessage({ msg, role, deal, onAccept, onCounter, onDecline, i
   }
 
   const mine = msg.sender === role;
-  const displayName = mine ? "You" : msg.sender === "buyer" ? deal.buyerName : deal.sellerName;
+  const displayName = mine
+    ? "You"
+    : msg.sender === "buyer"
+    ? deal?.buyerName || "Buyer"
+    : deal?.sellerName || "Seller";
   const align = mine ? "items-end ml-auto" : "items-start mr-auto";
   const bubbleTone = mine
     ? "bg-[var(--teal)] text-[var(--on-teal)] border-transparent shadow-sm"

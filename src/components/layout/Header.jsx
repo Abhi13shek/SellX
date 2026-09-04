@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   ShoppingCart,
   Bell,
@@ -10,14 +10,11 @@ import {
   LayoutGrid,
   ListChecks,
   MessageSquare,
-  MapPin,
-  ChevronDown,
 } from "lucide-react";
 import { BrandMark } from "../common/BrandMark.jsx";
 import { TabButton } from "../common/TabButton.jsx";
 import { StatPill } from "../common/StatPill.jsx";
 import { fmtINR } from "../../utils/formatters.js";
-import { CITIES } from "../../data/constants.js";
 
 export function Header({
   role,
@@ -33,96 +30,63 @@ export function Header({
   setActiveTab,
   sellerAuthed,
   onSignOut,
-  selectedCity = "blr",
-  onSelectCity,
 }) {
-  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
-  const currentCity = CITIES.find((c) => c.id === selectedCity) || CITIES[1];
-
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--surface)]/90 backdrop-blur-xl transition-colors">
+    <header className="sticky top-0 z-30 transition-colors duration-200 bg-[#0474C4] border-b border-[#035fa3] text-white shadow-md">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between h-16 gap-3">
-          {/* Brand & Location */}
+          {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            <BrandMark size="md" wordmark={true} />
-
-            {/* City / Location Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setCityDropdownOpen((v) => !v)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface2)] text-xs font-semibold text-[var(--paper)] hover:border-[var(--teal)]/40 transition-colors shadow-sm"
-              >
-                <MapPin size={12} className="text-[var(--teal)] shrink-0" />
-                <span className="truncate max-w-[100px] sm:max-w-[130px]">{currentCity.name}</span>
-                <ChevronDown size={11} className="text-[var(--mist)] shrink-0" />
-              </button>
-
-              {cityDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setCityDropdownOpen(false)}
-                  />
-                  <div className="absolute left-0 top-full mt-2 w-48 rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-2xl p-2 z-50 sellx-rise space-y-1">
-                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--mist-dim)] font-mono">
-                      Select Location
-                    </div>
-                    {CITIES.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => {
-                          if (onSelectCity) onSelectCity(c.id);
-                          setCityDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-2.5 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-between ${
-                          selectedCity === c.id
-                            ? "bg-[var(--teal)]/10 text-[var(--teal)] font-semibold"
-                            : "text-[var(--paper)] hover:bg-[var(--surface2)]"
-                        }`}
-                      >
-                        <span>{c.name}</span>
-                        <span className="text-[10px] font-mono text-[var(--mist-dim)]">{c.short}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+            <div
+              className="hover:scale-[1.02] transition-transform cursor-pointer"
+              onClick={() => setActiveTab(role === "buyer" ? "catalog" : "desk")}
+            >
+              <BrandMark size="md" wordmark={true} inverted={true} />
             </div>
+            <span className="hidden md:inline-flex items-center gap-2 ml-1 px-3 py-1 rounded-full border border-white/30 bg-white/15 text-[11px] font-semibold text-white shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+              Live desk
+            </span>
           </div>
 
           {/* Tabs */}
-          <nav className="hidden lg:flex items-center gap-1 bg-[var(--surface2)] border border-[var(--line)] rounded-xl p-1">
+          <nav className="hidden lg:flex items-center gap-1.5 bg-[#035ca0] border border-[#024a80] rounded-2xl p-1 shadow-inner">
             {role === "buyer" && (
-              <TabButton active={activeTab === "catalog"} onClick={() => setActiveTab("catalog")} icon={LayoutGrid} label="Catalog" />
+              <TabButton active={activeTab === "catalog"} onClick={() => setActiveTab("catalog")} icon={LayoutGrid} label="Catalog" onBlue={true} />
             )}
             {role === "seller" && (
-              <TabButton active={activeTab === "desk"} onClick={() => setActiveTab("desk")} icon={ListChecks} label="Trade Desk" />
+              <TabButton active={activeTab === "desk"} onClick={() => setActiveTab("desk")} icon={ListChecks} label="Trade Desk" onBlue={true} />
             )}
-            <TabButton active={activeTab === "dealroom"} onClick={() => setActiveTab("dealroom")} icon={MessageSquare} label="Deal Room" badge={stats.activeRFQs} />
+            <TabButton active={activeTab === "dealroom"} onClick={() => setActiveTab("dealroom")} icon={MessageSquare} label="Deal Room" badge={stats.activeRFQs} onBlue={true} />
           </nav>
 
           {/* Right controls */}
           <div className="flex items-center gap-2 shrink-0">
-            <div className="hidden xl:flex items-center gap-4 mr-2 pr-4 border-r border-[var(--line)]">
-              <StatPill label="Active RFQs" value={stats.activeRFQs} />
-              <StatPill label="Locked Deals" value={stats.lockedDeals} tone="green" />
+            <div className="hidden xl:flex items-center gap-4 mr-2 px-3.5 py-1 rounded-xl bg-[#035ca0] border border-white/20">
+              <StatPill label="Active RFQs" value={stats.activeRFQs} onBlue={true} />
+              <div className="w-[1px] h-6 bg-white/20" />
+              <StatPill label="Locked Deals" value={stats.lockedDeals} tone="green" onBlue={true} />
+              <div className="w-[1px] h-6 bg-white/20" />
               <StatPill
                 label={role === "buyer" ? "Total Savings" : "Total Margin"}
                 value={fmtINR(role === "buyer" ? stats.totalSavings : stats.totalMargin, { maximumFractionDigits: 0 })}
                 tone="brass"
+                onBlue={true}
               />
             </div>
 
             {role === "buyer" && (
               <button
                 onClick={onOpenCart}
-                className="relative hidden sm:flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface3)] transition-colors"
+                className="relative hidden sm:flex items-center justify-center w-9 h-9 rounded-xl border border-white/30 bg-white/15 text-white hover:bg-white/25 hover:border-white/60 transition-all"
                 title="Cart"
               >
                 <ShoppingCart size={16} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--teal)] text-[var(--on-teal)] text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-md ring-2 ring-[#0474C4]">
                     {cartCount}
                   </span>
                 )}
@@ -131,18 +95,18 @@ export function Header({
 
             <button
               onClick={onOpenNotifications}
-              className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface3)] transition-colors"
+              className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-white/30 bg-white/15 text-white hover:bg-white/25 hover:border-white/60 transition-all"
               title="Notifications"
             >
               <Bell size={16} />
               {unreadCount > 0 && (
-                <span className="absolute 1.5 top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--teal)]" />
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0474C4]" />
               )}
             </button>
 
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface3)] transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/30 bg-white/15 text-white hover:bg-white/25 hover:border-white/60 transition-all"
               title={`Switch to ${theme === "dark" ? "Light" : "Dark"} mode`}
             >
               {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
@@ -154,16 +118,20 @@ export function Header({
                 setRole(nextRole);
                 setActiveTab(nextRole === "buyer" ? "catalog" : "desk");
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface2)] text-xs font-semibold text-[var(--paper)] hover:bg-[var(--surface3)] transition-colors"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white bg-white text-[#0474C4] hover:bg-blue-50 text-xs font-bold shadow-sm transition-all"
             >
-              {role === "buyer" ? <Store size={14} className="text-[var(--teal)]" /> : <User size={14} className="text-[var(--teal)]" />}
-              <span className="hidden sm:inline">{role === "buyer" ? "Seller Mode" : "Buyer Mode"}</span>
+              {role === "buyer" ? (
+                <Store size={14} className="text-[#0474C4]" />
+              ) : (
+                <User size={14} className="text-[#0474C4]" />
+              )}
+              <span className="hidden sm:inline font-bold">{role === "buyer" ? "Seller Mode" : "Buyer Mode"}</span>
             </button>
 
             {role === "seller" && sellerAuthed && (
               <button
                 onClick={onSignOut}
-                className="flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--red)]/30 text-[var(--red)] hover:bg-[var(--red)]/10 transition-colors"
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-red-300 bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm"
                 title="Sign out from Seller Desk"
               >
                 <LogOut size={16} />

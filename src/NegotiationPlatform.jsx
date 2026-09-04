@@ -35,6 +35,7 @@ import { AcceptConfirmModal } from "./components/modals/AcceptConfirmModal.jsx";
 import { DeclineConfirmModal } from "./components/modals/DeclineConfirmModal.jsx";
 import { PaymentModal } from "./components/modals/PaymentModal.jsx";
 import { AutomationRulesModal } from "./components/modals/AutomationRulesModal.jsx";
+import { FooterInfoPage } from "./components/pages/FooterInfoPage.jsx";
 
 export default function App() {
   const [theme, setTheme] = useState("light");
@@ -44,7 +45,7 @@ export default function App() {
   const [deals, setDeals] = useState(INITIAL_DEALS);
   const [activeDealId, setActiveDealId] = useState(null);
   const [automationProduct, setAutomationProduct] = useState(null);
-  const [selectedCity, setSelectedCity] = useState("blr");
+  const [footerInfoTopic, setFooterInfoTopic] = useState(null);
 
   const [rfqProduct, setRfqProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
@@ -130,6 +131,7 @@ export default function App() {
 
   const goToTab = (tab) => {
     setDetailProduct(null);
+    setFooterInfoTopic(null);
     setActiveTab(tab);
   };
 
@@ -415,11 +417,6 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={goToTab}
         sellerAuthed={sellerAuthed}
-        selectedCity={selectedCity}
-        onSelectCity={(cityId) => {
-          setSelectedCity(cityId);
-          pushNotification(`Location updated to ${cityId.toUpperCase()}.`, { icon: Info, tone: "teal" });
-        }}
         onSignOut={() => {
           setSellerAuthed(false);
           setRole("buyer");
@@ -429,7 +426,17 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-6 py-6 sm:py-8">
-        {detailProduct ? (
+        {footerInfoTopic ? (
+          <FooterInfoPage
+            topic={footerInfoTopic}
+            onClose={() => setFooterInfoTopic(null)}
+            onNavigate={(newRole, tab) => {
+              setFooterInfoTopic(null);
+              if (newRole) setRole(newRole);
+              if (tab) goToTab(tab);
+            }}
+          />
+        ) : detailProduct ? (
           <ProductDetailPage
             product={detailProduct}
             onBack={() => setDetailProduct(null)}
@@ -445,8 +452,6 @@ export default function App() {
                 onRequestQuote={(p) => setRfqProduct(p)}
                 onToggleCart={toggleCart}
                 cartItems={cartItems}
-                selectedCity={selectedCity}
-                onSelectCity={setSelectedCity}
                 onOpenProduct={(p) => setDetailProduct(p)}
               />
             )}
@@ -473,11 +478,46 @@ export default function App() {
                 activeDeal={activeDeal}
                 role={role}
                 onSelectDeal={(id) => setActiveDealId(id)}
-                onSendMessage={(text) => activeDeal && sendMessage(activeDeal.id, role, text)}
-                onProposeCounter={(offer) => activeDeal && proposeCounter(activeDeal.id, role, offer)}
-                onRequestLock={(viewOnly) => activeDeal && requestLock(activeDeal.id, viewOnly)}
-                onRequestDecline={() => activeDeal && requestDecline(activeDeal.id, role)}
-                onOpenPayment={() => activeDeal && openPayment(activeDeal.id)}
+                onSendMessage={(text, dealId) => {
+                  const targetId = dealId || activeDealId || activeDeal?.id;
+                  if (targetId) sendMessage(targetId, role, text);
+                }}
+                onProposeCounter={(offer, dealId) => {
+                  const targetId = dealId || activeDealId || activeDeal?.id;
+                  if (targetId) proposeCounter(targetId, role, offer);
+                }}
+                onRequestLock={(a, b) => {
+                  let targetId = activeDealId || activeDeal?.id;
+                  let viewOnly = false;
+                  if (typeof a === "string") {
+                    targetId = a;
+                    viewOnly = Boolean(b);
+                  } else if (typeof a === "boolean") {
+                    viewOnly = a;
+                    if (typeof b === "string") targetId = b;
+                  }
+                  if (targetId) requestLock(targetId, viewOnly);
+                }}
+                onRequestDecline={(a, b) => {
+                  let targetId = activeDealId || activeDeal?.id;
+                  let senderRole = role;
+                  if (typeof a === "string") {
+                    if (a.startsWith("D-") || a.startsWith("d-")) {
+                      targetId = a;
+                      if (typeof b === "string") senderRole = b;
+                    } else if (a === "buyer" || a === "seller") {
+                      senderRole = a;
+                      if (typeof b === "string") targetId = b;
+                    } else {
+                      targetId = a;
+                    }
+                  }
+                  if (targetId) requestDecline(targetId, senderRole);
+                }}
+                onOpenPayment={(dealId) => {
+                  const targetId = (typeof dealId === "string" ? dealId : null) || activeDealId || activeDeal?.id;
+                  if (targetId) openPayment(targetId);
+                }}
                 onOpenCatalog={() => goToTab("catalog")}
               />
             )}
@@ -491,7 +531,11 @@ export default function App() {
           if (newRole) setRole(newRole);
           if (tab) goToTab(tab);
         }}
-        onDemoAction={(label) => pushNotification(`Opened ${label} action.`, { icon: Info, tone: "teal" })}
+        onOpenInfo={(topic) => setFooterInfoTopic(topic)}
+        onSelectCategory={(category) => {
+          goToTab("catalog");
+          setDetailProduct(null);
+        }}
       />
 
       {/* Drawers */}

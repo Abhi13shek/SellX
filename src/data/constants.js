@@ -1,44 +1,10 @@
-import { Smartphone, CreditCard, Landmark, MapPin, Building, Shield } from "lucide-react";
+import { Smartphone, CreditCard, Landmark } from "lucide-react";
 
 export const SORT_OPTIONS = [
   { id: "default", label: "Featured" },
-  { id: "distance-asc", label: "Distance: Nearest First" },
   { id: "price-asc", label: "Price: Low to High" },
   { id: "price-desc", label: "Price: High to Low" },
   { id: "lead-asc", label: "Lead time: Fastest" },
-];
-
-export const CITIES = [
-  { id: "all", name: "All Locations", short: "All India" },
-  { id: "blr", name: "Bengaluru", short: "BLR", localities: ["Indiranagar", "Koramangala", "HSR Layout", "Whitefield", "Jayanagar"] },
-  { id: "mum", name: "Mumbai", short: "MUM", localities: ["Bandra West", "Andheri", "Powai", "Juhu", "Colaba"] },
-  { id: "del", name: "Delhi NCR", short: "DEL", localities: ["Hauz Khas", "Connaught Place", "Cyber City", "Saket", "Noida"] },
-  { id: "hyd", name: "Hyderabad", short: "HYD", localities: ["Hitec City", "Gachibowli", "Jubilee Hills", "Banjara Hills"] },
-  { id: "pune", name: "Pune", short: "PUN", localities: ["Koregaon Park", "Kothrud", "Viman Nagar", "Baner"] },
-];
-
-export const SAFE_MEETUP_ZONES = [
-  {
-    id: "metro",
-    name: "CCTV Monitored Metro Station Exit",
-    type: "Public Transit Hub",
-    description: "Well-lit entrance with security personnel and active CCTV cameras.",
-    badge: "Verified Safe Zone",
-  },
-  {
-    id: "kiosk",
-    name: "Police / Traffic Assistance Kiosk",
-    type: "Official Safety Point",
-    description: "Designated community exchange point near local traffic beat kiosk.",
-    badge: "Maximum Security",
-  },
-  {
-    id: "cafe",
-    name: "Partner Cafe / Co-working Lobby",
-    type: "High Footfall Public Spot",
-    description: "Safe public area with seating, Wi-Fi, and power outlets to test electronics.",
-    badge: "Power & Wi-Fi Available",
-  },
 ];
 
 export const STAGES = ["New Requests", "In Negotiation", "Pending Acceptance", "Closed/Won"];

@@ -19,6 +19,11 @@ async function startServer() {
       logger.info(`💼 Deals API: http://localhost:${ENV.PORT}/api/deals`);
     });
 
+    server.on("error", (err) => {
+      logger.error(`Backend server error: ${err.message}`);
+      process.exit(1);
+    });
+
     // Graceful shutdown handling
     const shutdown = () => {
       logger.info("Gracefully shutting down server...");
