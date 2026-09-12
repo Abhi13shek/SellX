@@ -1,46 +1,48 @@
 import React from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, MapPin, CheckCircle2 } from "lucide-react";
 import { Badge } from "../common/Badge.jsx";
 import { fmtINR } from "../../utils/formatters.js";
 
 export function BuyerCopilot({ product, onUseSuggested }) {
-  const suggested = product.basePrice * 0.87;
-  const acceptanceRate = 68;
+  const suggested = Math.round(product.basePrice * 0.88);
+  const locality = product.locality || "Indiranagar, BLR";
+  const acceptanceRate = 72;
 
   return (
     <div className="space-y-3">
       <div className="p-3 rounded-xl bg-[var(--teal)]/8 border border-[var(--teal)]/25">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase tracking-wide text-[var(--mist)]">Suggested target price</span>
+          <span className="text-[11px] uppercase font-bold tracking-wide text-[var(--mist)]">Fair Second-Hand Valuation</span>
           <Badge tone="teal">
-            <Sparkles size={10} /> Benchmark
+            <Sparkles size={10} /> AI Market Match
           </Badge>
         </div>
         <div className="flex items-end justify-between mt-1.5">
           <span className="font-mono text-xl font-bold text-[var(--price)] tabular-nums">{fmtINR(suggested)}</span>
           <button
-            onClick={() => onUseSuggested(Number(suggested.toFixed(2)))}
+            onClick={() => onUseSuggested(suggested)}
             className="text-xs font-semibold text-[var(--navy)] hover:underline"
           >
-            Use this price
+            Apply ₹{suggested.toLocaleString("en-IN")}
           </button>
         </div>
         <p className="text-[11px] text-[var(--mist)] mt-1.5 leading-relaxed">
-          Based on 30-day category benchmarks, 13% below list price is a common landing point.
+          Pre-owned {product.category || "items"} in <b>{product.condition || "Like New"}</b> condition typically close between 10%–15% below list.
         </p>
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] uppercase tracking-wide text-[var(--mist)]">Historical seller acceptance</span>
-          <span className="font-mono text-xs font-bold text-[var(--paper)]">{acceptanceRate}%</span>
+      <div className="p-3 rounded-xl bg-[var(--surface2)] border border-[var(--line)] space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] uppercase font-bold tracking-wide text-[var(--mist)]">Owner Acceptance Probability</span>
+          <span className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">{acceptanceRate}%</span>
         </div>
         <div className="h-2 rounded-full bg-[var(--surface3)] overflow-hidden">
-          <div className="h-full rounded-full bg-[var(--teal)]" style={{ width: `${acceptanceRate}%` }} />
+          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${acceptanceRate}%` }} />
         </div>
-        <p className="text-[11px] text-[var(--mist-dim)] mt-1.5">
-          Sellers in this category accepted first counters at this discount 68% of the time.
-        </p>
+        <div className="text-[11px] text-[var(--mist-dim)] flex items-center gap-1 mt-1">
+          <MapPin size={11} className="text-rose-400" />
+          <span>Sellers in <b>{locality}</b> usually close fast if cash/UPI on pickup is offered.</span>
+        </div>
       </div>
     </div>
   );

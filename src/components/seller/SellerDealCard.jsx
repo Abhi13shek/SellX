@@ -1,5 +1,5 @@
 import React from "react";
-import { Building2, CheckCircle2, Lock, XCircle, Clock } from "lucide-react";
+import { User, CheckCircle2, Lock, XCircle, Clock, MapPin, ShieldCheck } from "lucide-react";
 import { CategoryIcon } from "../common/Icons.jsx";
 import { MiniStat } from "../common/MiniStat.jsx";
 import { Badge } from "../common/Badge.jsx";
@@ -18,7 +18,7 @@ export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, on
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 pl-5 transition-all duration-200 hover:-translate-y-0.5"
+      className="relative overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 pl-5 transition-all duration-200 hover:-translate-y-0.5 shadow-sm"
       style={{ borderColor: "var(--line)" }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = hexToRgba(cardColor, 0.5);
@@ -38,22 +38,22 @@ export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, on
               {deal.product.name}
             </div>
             <div className="text-xs text-[var(--mist)] mt-0.5 flex items-center gap-1">
-              <Building2 size={11} />
-              {deal.buyerName}
+              <User size={11} className="text-[var(--teal)]" />
+              <span>{deal.buyerName}</span>
             </div>
           </div>
           <CategoryIcon category={deal.product.category} Icon={deal.product.icon} size="sm" />
         </div>
 
         <div className="mt-3">
-          <MiniStat label="Offer price" value={fmtINR(ts.unitPrice)} />
+          <MiniStat label="Buyer Offer Price" value={fmtINR(ts.unitPrice)} />
         </div>
 
         <div className="flex items-center justify-between mt-3">
           {isLocked ? (
             <Badge tone={ts.paymentStatus === "paid" ? "green" : "brass"}>
               {ts.paymentStatus === "paid" ? <CheckCircle2 size={10} /> : <Lock size={10} />}
-              {ts.paymentStatus === "paid" ? "Paid" : "Locked"}
+              {ts.paymentStatus === "paid" ? "Paid (Escrow)" : "Agreed / Handover"}
             </Badge>
           ) : isDeclined ? (
             <Badge tone="red">
@@ -61,12 +61,12 @@ export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, on
             </Badge>
           ) : (
             <Badge tone="amber">
-              <Clock size={10} /> Awaiting reply
+              <Clock size={10} /> Awaiting response
             </Badge>
           )}
-          <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: healthColor[health.level] }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: healthColor[health.level] }} />
-            {(health.m * 100).toFixed(0)}% margin
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <ShieldCheck size={12} />
+            {deal.handoverType || "Meetup"}
           </span>
         </div>
       </button>

@@ -417,6 +417,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={goToTab}
         sellerAuthed={sellerAuthed}
+        onOpenAddItem={() => setAddItemOpen(true)}
         onSignOut={() => {
           setSellerAuthed(false);
           setRole("buyer");
@@ -439,6 +440,8 @@ export default function App() {
         ) : detailProduct ? (
           <ProductDetailPage
             product={detailProduct}
+            allProducts={allProducts}
+            onOpenProduct={(p) => setDetailProduct(p)}
             onBack={() => setDetailProduct(null)}
             onRequestQuote={(p) => setRfqProduct(p)}
             onToggleCart={toggleCart}

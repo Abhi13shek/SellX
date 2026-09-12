@@ -328,35 +328,60 @@ export function DealRoomActive({
 
         {/* RIGHT: TERM SHEET + INTERACTIVE COUNTER + COPILOT (4 or 5 cols) */}
         <div className={`${sidebarOpen && deals.length > 1 ? "lg:col-span-4" : "lg:col-span-5"} space-y-4`}>
-          {/* Term Sheet Card */}
+          {/* Term Sheet / Handover Agreement Card */}
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:p-5 relative overflow-hidden shadow-sm">
             {locked && (
               <div className="sellx-stamp absolute top-3 right-3 border-2 border-[var(--green)] text-[var(--green)] rounded-lg px-2.5 py-1 text-[11px] font-display font-bold tracking-widest -rotate-6 bg-[var(--green)]/10">
-                LOCKED
+                AGREED
               </div>
             )}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <FileText size={14} className="text-[var(--mist)]" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-[var(--mist)]">
-                  Active Term Sheet
+                  {locked ? "Handover Agreement" : "Active Bargain Terms"}
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <TermStat label="Agreed Price" value={fmtINR(ts.unitPrice)} accent />
-              <TermStat label="Delivery Timeline" value={`${ts.leadTimeDays} days`} />
+              <TermStat label="Handover Mode" value={deal?.handoverType || ts.handoverType || "Local Meetup"} />
             </div>
+
+            {/* Meetup Location */}
+            <div className="mt-3 p-2.5 rounded-xl bg-[var(--surface2)] border border-[var(--line)] flex items-center gap-2 text-xs">
+              <span className="text-[var(--mist-dim)] font-semibold">📍 Meetup Spot:</span>
+              <span className="text-[var(--paper)] font-medium truncate">
+                {deal?.meetupLocation || ts.meetupLocation || (product.locality ? `${product.locality}, ${product.city || "BLR"}` : "Indiranagar Metro Station")}
+              </span>
+            </div>
+
+            {/* Handover OTP Passcode Box if Locked */}
+            {locked && (
+              <div className="mt-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-1.5">
+                <span className="text-[10px] uppercase font-extrabold tracking-widest text-emerald-600 dark:text-emerald-400 block">
+                  🔒 Handover Passcode (OTP)
+                </span>
+                <div className="font-mono text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-widest">
+                  {deal?.handoverOtp || ts.handoverOtp || "8429"}
+                </div>
+                <p className="text-[11px] text-[var(--mist)] leading-snug">
+                  {role === "buyer"
+                    ? "Share this 4-digit passcode with the seller ONLY after physical inspection."
+                    : "Ask buyer for this 4-digit passcode during meetup to verify handover."}
+                </p>
+              </div>
+            )}
 
             <div className="mt-3.5 flex items-center justify-between pt-3 border-t border-[var(--line)]/50">
               {locked ? (
-                <span className="flex items-center gap-1.5 text-sm font-semibold text-[var(--green)]">
-                  <ShieldCheck size={15} /> Term sheet locked
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--green)]">
+                  <ShieldCheck size={15} /> Deal agreed &amp; OTP active
                 </span>
               ) : declined ? (
-                <span className="flex items-center gap-1.5 text-sm font-semibold text-[var(--red)]">
-                  <XCircle size={15} /> Deal declined
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--red)]">
+                  <XCircle size={15} /> Bargain closed without agreement
                 </span>
               ) : (
                 <>
@@ -386,7 +411,7 @@ export function DealRoomActive({
                     onClick={() => onOpenPayment && onOpenPayment(deal.id)}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-md active:scale-95"
                   >
-                    <CreditCard size={14} /> Pay {fmtINR(ts.unitPrice)} via Escrow
+                    <CreditCard size={14} /> Pay {fmtINR(ts.unitPrice)} via Safe Escrow
                   </button>
                 )}
               </div>
@@ -402,7 +427,7 @@ export function DealRoomActive({
                   }`}
                 >
                   {ts.paymentStatus === "paid" ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-                  {ts.paymentStatus === "paid" ? "Buyer has paid · Escrow ready for payout" : "Awaiting buyer escrow payment"}
+                  {ts.paymentStatus === "paid" ? "Buyer has deposited funds in Escrow" : "Buyer preparing payment / local cash"}
                 </div>
               </div>
             )}

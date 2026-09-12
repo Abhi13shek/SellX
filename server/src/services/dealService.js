@@ -18,10 +18,11 @@ export const dealService = {
       acceptedAt: Date.now(),
     });
 
+    const otp = updated.handoverOtp || updated.termSheet.handoverOtp;
     DealModel.addMessage(dealId, {
       sender: "system",
       type: "text",
-      text: automatedNote || `Deal agreed and locked at ₹${deal.termSheet.unitPrice.toLocaleString("en-IN")} with ${deal.termSheet.leadTimeDays}-day delivery. Escrow payment ready.`,
+      text: automatedNote || `Deal agreed at ₹${deal.termSheet.unitPrice.toLocaleString("en-IN")}. 🔒 Handover Passcode: [${otp || "8429"}]. Inspect the item and verify passcode upon meeting.`,
     });
 
     return updated;

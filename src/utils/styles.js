@@ -130,6 +130,34 @@ export const GLOBAL_STYLES = `
   @keyframes sellx-stamp{ 0%{ opacity:0; transform: scale(2.2) rotate(-14deg);} 60%{ opacity:1; transform: scale(0.94) rotate(-8deg);} 100%{ opacity:1; transform: scale(1) rotate(-8deg);} }
   .sellx-stamp{ animation: sellx-stamp .5s cubic-bezier(.2,.8,.3,1.1) both; }
 
+  @keyframes sellx-glide-up{
+    from{
+      opacity: 0;
+      transform: translateY(28px) scale(0.96);
+    }
+    to{
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .sellx-glide-up{
+    animation: sellx-glide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity;
+  }
+
+  .sellx-card-hidden{
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+    pointer-events: none;
+  }
+
+  .sellx-card-revealed{
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
   .sellx-ticket{
     position:relative;
     border:1px dashed var(--line);

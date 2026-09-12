@@ -1,4 +1,4 @@
-export const SEED_PRODUCTS = [
+const RAW_SEED_PRODUCTS = [
   /* Mobile */
   {
     id: "P-101",
@@ -514,6 +514,111 @@ export const SEED_PRODUCTS = [
   },
 ];
 
+const ANGLE_PHOTO_SETS = {
+  Mobile: [
+    "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=800&auto=format&fit=crop&q=80",
+  ],
+  Computing: [
+    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80",
+  ],
+  Audio: [
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80",
+  ],
+  Cameras: [
+    "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?w=800&auto=format&fit=crop&q=80",
+  ],
+  Gaming: [
+    "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1612287233207-6f6d0fcf8a08?w=800&auto=format&fit=crop&q=80",
+  ],
+  Wearables: [
+    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+  ],
+  Vehicles: [
+    "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80",
+  ],
+};
+
+export const SEED_PRODUCTS = RAW_SEED_PRODUCTS.map((p, idx) => {
+  let city = "Bangalore";
+  let locality = "Indiranagar";
+  
+  const supplierStr = p.supplier || "";
+  if (supplierStr.includes("BLR") || supplierStr.includes("Bangalore")) {
+    city = "Bangalore";
+    if (supplierStr.includes("Indiranagar")) locality = "Indiranagar";
+    else if (supplierStr.includes("Koramangala")) locality = "Koramangala";
+    else if (supplierStr.includes("HSR")) locality = "HSR Layout";
+    else locality = "Indiranagar";
+  } else if (supplierStr.includes("MUM") || supplierStr.includes("Mumbai")) {
+    city = "Mumbai";
+    if (supplierStr.includes("Bandra")) locality = "Bandra West";
+    else if (supplierStr.includes("Powai")) locality = "Powai";
+    else locality = "Andheri West";
+  } else if (supplierStr.includes("DEL") || supplierStr.includes("Delhi")) {
+    city = "Delhi NCR";
+    if (supplierStr.includes("Connaught")) locality = "Connaught Place";
+    else locality = "Hauz Khas";
+  } else if (supplierStr.includes("Pune")) {
+    city = "Pune";
+    locality = "Aundh";
+  } else if (supplierStr.includes("HYD") || supplierStr.includes("Hyderabad")) {
+    city = "Hyderabad";
+    locality = "Gachibowli";
+  } else {
+    const cityList = ["Bangalore", "Mumbai", "Delhi NCR", "Pune", "Hyderabad"];
+    city = cityList[idx % cityList.length];
+    locality = idx % 2 === 0 ? "Indiranagar" : "Koramangala";
+  }
+
+  const conditionList = ["Mint / Like New", "Like New", "Gently Used", "Good Condition"];
+  const condition = p.condition || conditionList[idx % conditionList.length];
+  const distanceKm = Math.round((1.2 + (idx * 0.7) % 6.5) * 10) / 10;
+  const rating = Math.round((4.6 + (idx * 0.08) % 0.4) * 10) / 10;
+  const reviewsCount = 8 + (idx * 3) % 25;
+
+  const categorySet = ANGLE_PHOTO_SETS[p.category] || ANGLE_PHOTO_SETS.Mobile;
+  const images = p.images || [
+    p.image || categorySet[0],
+    categorySet[1] || categorySet[0],
+    categorySet[2] || categorySet[0],
+  ];
+
+  return {
+    ...p,
+    city,
+    locality,
+    condition,
+    distanceKm,
+    image: images[0],
+    images,
+    minAcceptablePrice: p.minAcceptablePrice || Math.round(p.basePrice * 0.85),
+    sellerTrust: {
+      rating,
+      reviewsCount,
+      verified: true,
+      memberSince: "2023",
+      responseRate: "100%",
+      responseTime: "< 15 mins",
+    },
+    includes: p.includes || ["Original Box", "Charging Cable / Accessories", "Purchase Invoice"],
+    handoverOptions: ["Local Meetup (Public Spot)", "Instant Courier / Safe Escrow"],
+  };
+});
+
 export function getSeedDeals(products) {
   const now = Date.now();
   const pM1 = products.find((p) => p.id === "P-200") || products[0];
@@ -528,10 +633,15 @@ export function getSeedDeals(products) {
       buyerName: "Tanmay V.",
       sellerName: pM1.supplier,
       targetMarginPct: 0.22,
+      handoverType: "Local Meetup",
+      meetupLocation: "Indiranagar Metro Station",
+      handoverOtp: "8429",
       createdAt: now - 3 * 55 * 60000 - 60000,
       termSheet: {
         unitPrice: 38000,
         leadTimeDays: 2,
+        handoverType: "Local Meetup",
+        meetupLocation: "Indiranagar Metro Station",
         status: "proposed",
         expiresAt: now + 90 * 60000,
         lastProposedBy: "buyer",
@@ -610,10 +720,15 @@ export function getSeedDeals(products) {
       buyerName: "Suresh Patil",
       sellerName: pActiva.supplier,
       targetMarginPct: 0.22,
+      handoverType: "Local Meetup (RTO Office)",
+      meetupLocation: "Koramangala RTO Complex",
+      handoverOtp: "4198",
       createdAt: now - 55 * 60000 - 60000,
       termSheet: {
         unitPrice: 41000,
         leadTimeDays: 4,
+        handoverType: "Local Meetup (RTO Office)",
+        meetupLocation: "Koramangala RTO Complex",
         status: "proposed",
         expiresAt: now + 90 * 60000,
         lastProposedBy: "buyer",
@@ -654,10 +769,15 @@ export function getSeedDeals(products) {
       buyerName: "Aman Gupta",
       sellerName: pIphone.supplier,
       targetMarginPct: 0.22,
+      handoverType: "Local Meetup (Public Spot)",
+      meetupLocation: "Indiranagar Metro Station, Exit A",
+      handoverOtp: "9283",
       createdAt: now - 4 * 55 * 60000 - 60000,
       termSheet: {
         unitPrice: 31200,
         leadTimeDays: 2,
+        handoverType: "Local Meetup (Public Spot)",
+        meetupLocation: "Indiranagar Metro Station, Exit A",
         status: "proposed",
         expiresAt: now + 90 * 60000,
         lastProposedBy: "seller",

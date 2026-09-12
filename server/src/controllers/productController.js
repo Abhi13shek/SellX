@@ -1,11 +1,12 @@
 import { ProductModel } from "../models/ProductModel.js";
 import { negotiationService } from "../services/negotiationService.js";
+import { semanticService } from "../services/semanticService.js";
 
 export const productController = {
   getAllProducts(req, res, next) {
     try {
-      const { category, search, sortBy } = req.query;
-      const products = ProductModel.findAll({ category, search, sortBy });
+      const { category, search, sortBy, city, condition } = req.query;
+      const products = ProductModel.findAll({ category, search, sortBy, city, condition });
       res.json({ success: true, count: products.length, data: products });
     } catch (err) {
       next(err);
@@ -20,6 +21,17 @@ export const productController = {
         return res.status(404).json({ success: false, error: { message: "Product not found", statusCode: 404 } });
       }
       res.json({ success: true, data: product });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  getSimilarProducts(req, res, next) {
+    try {
+      const { id } = req.params;
+      const limit = parseInt(req.query.limit, 10) || 4;
+      const similar = semanticService.getSimilarProducts(id, limit);
+      res.json({ success: true, count: similar.length, model: "all-MiniLM-L6-v2-semantic", data: similar });
     } catch (err) {
       next(err);
     }

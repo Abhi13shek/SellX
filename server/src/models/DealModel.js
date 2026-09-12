@@ -64,19 +64,27 @@ export const DealModel = {
       }
     }
 
+    const handoverType = initialOffer?.handoverType || "Local Meetup";
+    const meetupLocation = initialOffer?.meetupLocation || product.locality ? `${product.locality}, ${product.city || "Bangalore"}` : "Designated Public Spot";
+
     const newDeal = {
       id: dealId,
       productId: product.id,
       product,
       buyerName,
-      sellerName: product.supplier || "Verified Seller",
+      sellerName: product.supplier || "Verified Owner",
       targetMarginPct: 0.22,
+      handoverType,
+      meetupLocation,
+      handoverOtp: null,
       createdAt: now,
       updatedAt: now,
       messages,
       termSheet: {
         unitPrice,
         leadTimeDays,
+        handoverType,
+        meetupLocation,
         status: "proposed",
         expiresAt: now + 90 * 60000,
         lastProposedBy: initialOffer ? "buyer" : "seller",
@@ -116,6 +124,7 @@ export const DealModel = {
         ...deal.termSheet,
         unitPrice: message.offer.unitPrice,
         leadTimeDays: message.offer.leadTimeDays,
+        handoverType: message.offer.handoverType || deal.termSheet.handoverType || "Local Meetup",
         status: "proposed",
         expiresAt: Date.now() + 90 * 60000,
         lastProposedBy: message.sender,
@@ -129,6 +138,13 @@ export const DealModel = {
   updateTermSheet(dealId, termSheetUpdates) {
     const deal = this.findById(dealId);
     if (!deal) return null;
+
+    // If status is transitioning to locked, ensure handoverOtp exists
+    if (termSheetUpdates.status === "locked" && !deal.handoverOtp && !termSheetUpdates.handoverOtp) {
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
+      termSheetUpdates.handoverOtp = otp;
+      deal.handoverOtp = otp;
+    }
 
     deal.termSheet = { ...deal.termSheet, ...termSheetUpdates };
     deal.updatedAt = Date.now();

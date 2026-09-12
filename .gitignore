@@ -32,4 +32,9 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
-*.timestamp-*.mjs
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
