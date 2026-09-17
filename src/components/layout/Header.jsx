@@ -107,7 +107,7 @@ export function Header({
             >
               {role === "buyer" ? (
                 <>
-                  <Store size={14} className="text-[#0474C4]" />
+                  <Store size={14} className="text-[#10B981]" />
                   <span>Seller Mode</span>
                 </>
               ) : (

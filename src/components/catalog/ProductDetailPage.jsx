@@ -29,6 +29,7 @@ export function ProductDetailPage({
   onRequestQuote,
   onToggleCart,
   inCart,
+  cart = [],
 }) {
   const [selectedPhotoIdx, setSelectedPhotoIdx] = React.useState(0);
   if (!product) return null;
@@ -62,7 +63,7 @@ export function ProductDetailPage({
     <div className="sellx-rise max-w-5xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-sm font-semibold text-[var(--mist)] hover:text-[var(--paper)] mb-5 transition-colors"
+        className="flex items-center gap-2 text-sm font-semibold text-[var(--mist)] hover:text-[var(--paper)] mb-5 transition-colors cursor-pointer"
       >
         <ArrowLeft size={15} /> Back to listings
       </button>
@@ -103,7 +104,7 @@ export function ProductDetailPage({
                     key={idx}
                     type="button"
                     onClick={() => setSelectedPhotoIdx(idx)}
-                    className={`relative rounded-xl overflow-hidden border-2 transition-all p-0.5 bg-[var(--surface)] text-left group ${
+                    className={`relative rounded-xl overflow-hidden border-2 transition-all p-0.5 bg-[var(--surface)] text-left group cursor-pointer ${
                       isSelected
                         ? "border-[var(--teal)] ring-2 ring-[var(--teal)]/30 shadow-md scale-[1.02]"
                         : "border-[var(--line)] hover:border-[var(--teal)]/50 opacity-75 hover:opacity-100"
@@ -276,6 +277,9 @@ export function ProductDetailPage({
           if (onOpenProduct) onOpenProduct(p);
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
+        onToggleCart={onToggleCart}
+        cart={cart}
+        onRequestQuote={onRequestQuote}
       />
     </div>
   );

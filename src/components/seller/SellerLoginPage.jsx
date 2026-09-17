@@ -58,15 +58,15 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
       {/* Left Side (50% Equal Split) */}
       <div
         className="relative w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 overflow-hidden border-b lg:border-b-0 lg:border-r border-[var(--line)]"
-        style={{ background: "linear-gradient(155deg, #181c2b 0%, #262B40 50%, #06457F 100%)" }}
+        style={{ background: "linear-gradient(155deg, #080D0B 0%, #0F1A16 50%, #1A2E20 100%)" }}
       >
         <div
           className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-25 pointer-events-none"
-          style={{ background: "radial-gradient(circle, #0474C4, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #10B981, transparent 70%)" }}
         />
         <div
           className="absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full opacity-20 translate-x-1/3 translate-y-1/3 pointer-events-none"
-          style={{ background: "radial-gradient(circle, #A8C4EC, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #F59E0B, transparent 70%)" }}
         />
 
         <div className="relative z-10 flex items-center justify-between">
@@ -74,7 +74,7 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
         </div>
 
         <div className="relative z-10 max-w-lg my-auto py-10 lg:py-0">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-xs font-semibold text-blue-400 mb-5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-400 mb-5">
             <Shield size={13} /> Verified Seller Trade Desk
           </div>
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-slate-100">
@@ -88,8 +88,8 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
           <div className="mt-8 space-y-4">
             {SELLER_PERKS.map((p) => (
               <div key={p} className="flex items-start gap-3">
-                <div className="mt-0.5 w-5 h-5 rounded-full bg-blue-500/15 flex items-center justify-center shrink-0 border border-blue-500/30">
-                  <Check size={12} className="text-blue-400" strokeWidth={3} />
+                <div className="mt-0.5 w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                  <Check size={12} className="text-emerald-400" strokeWidth={3} />
                 </div>
                 <span className="text-sm text-slate-200 leading-relaxed font-medium">{p}</span>
               </div>

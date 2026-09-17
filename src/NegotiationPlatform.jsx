@@ -22,6 +22,7 @@ import { Header } from "./components/layout/Header.jsx";
 import { Footer } from "./components/layout/Footer.jsx";
 import { NotificationDrawer } from "./components/layout/NotificationDrawer.jsx";
 import { CartDrawer } from "./components/layout/CartDrawer.jsx";
+import { WaveformBackground } from "./components/common/WaveformBackground.jsx";
 
 import { CatalogView } from "./components/catalog/CatalogView.jsx";
 import { ProductDetailPage } from "./components/catalog/ProductDetailPage.jsx";
@@ -397,8 +398,11 @@ export default function App() {
   }
 
   return (
-    <div className={`sellx-root ${theme} min-h-screen bg-[var(--ink)] text-[var(--paper)] font-body flex flex-col`}>
+    <div className={`sellx-root ${theme} min-h-screen bg-[var(--ink)] text-[var(--paper)] font-body flex flex-col relative overflow-x-hidden`}>
       <style>{GLOBAL_STYLES}</style>
+      
+      {/* Dynamic Animated Bilateral Soundwave & Equilibrium Background */}
+      <WaveformBackground />
 
       {/* Header */}
       <Header
@@ -426,7 +430,8 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-6 py-6 sm:py-8">
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-6 py-6 sm:py-8 relative z-10">
+
         {footerInfoTopic ? (
           <FooterInfoPage
             topic={footerInfoTopic}
@@ -446,6 +451,7 @@ export default function App() {
             onRequestQuote={(p) => setRfqProduct(p)}
             onToggleCart={toggleCart}
             inCart={cartIds.has(detailProduct.id)}
+            cart={cartItems}
           />
         ) : (
           <>

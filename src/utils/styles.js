@@ -2,99 +2,99 @@ export const GLOBAL_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   .sellx-root{
-    /* Dark Mode — Custom Palette */
-    --ink: #050914;                /* Background: #050914 */
-    --surface: #0D1424;            /* Surface: #0D1424 */
-    --surface2: #141E33;           /* Elevated surface & input fields */
-    --surface3: #1D2A40;           /* Interactive chips */
-    --surface-elevated: #0D1424;
+    /* Dark Mode — Palette 2: Deep Emerald & Carbon Gold */
+    --ink: #080D0B;                /* Carbon Charcoal / Deep Obsidian Forest */
+    --surface: #0F1A16;            /* Dark Pine Slate / Deep Emerald Surface */
+    --surface2: #162620;           /* Elevated surface & input fields */
+    --surface3: #1F352C;           /* Interactive hover & chips */
+    --surface-elevated: #13221D;
     
-    --line: #1D2A40;               /* Border: #1D2A40 */
-    --line-soft: rgba(29, 42, 64, 0.5);
-    --line-highlight: #A8C4EC;     /* Accent: #A8C4EC */
+    --line: #1E382E;               /* Deep Jade Wireframe Border */
+    --line-soft: rgba(30, 56, 46, 0.6);
+    --line-highlight: #10B981;     /* Emerald line highlight */
     
-    --paper: #F8FAFC;              /* Text: #F8FAFC */
-    --paper-dim: #E2E8F0;
-    --mist: #8896AA;               /* Muted Text: #8896AA */
-    --mist-dim: #556275;
+    --paper: #F2FBF7;              /* Diamond Pearl White text */
+    --paper-dim: #D1E7DD;
+    --mist: #8E9F97;               /* Sage Gray muted text */
+    --mist-dim: #5B6B63;
     
-    /* 1. PRIMARY (#0474C4) & SECONDARY (#06457F) */
-    --teal: #0474C4;               /* Primary: #0474C4 */
-    --teal-dim: #06457F;           /* Secondary: #06457F */
-    --teal-glow: rgba(4, 116, 196, 0.35);
+    /* Primary & Secondary: Mint Emerald (#10B981) & Burnished Gold (#F59E0B) */
+    --teal: #10B981;               /* Primary: Mint Emerald */
+    --teal-dim: #059669;           /* Secondary: Emerald 600 */
+    --teal-glow: rgba(16, 185, 129, 0.35);
     --on-teal: #FFFFFF;
     
-    --brass: #06457F;              /* Secondary: #06457F */
-    --brass-dim: #0474C4;
-    --brass-text: #A8C4EC;         /* Accent: #A8C4EC */
-    --on-brass: #FFFFFF;
+    --brass: #F59E0B;              /* Secondary: Burnished Gold */
+    --brass-dim: #D97706;
+    --brass-text: #FCD34D;         /* Soft Gold Accent */
+    --on-brass: #080D0B;
     
-    /* 2. TEAL ACCENT (#2C444C) & ACCENT (#A8C4EC) */
-    --accent: #A8C4EC;             /* Accent: #A8C4EC */
-    --teal-accent: #2C444C;        /* Teal Accent: #2C444C */
+    /* Accents */
+    --accent: #34D399;             /* Vibrant Jade / Mint */
+    --teal-accent: #064E3B;        /* Deep Forest Accent */
     
-    --price: #38bdf8;              /* Electric Sky Blue for Price Tags */
-    --red: #f43f5e;
-    --red-dim: #e11d48;
-    --amber: #f59e0b;
+    --price: #34D399;              /* Mint Emerald Price */
+    --red: #F43F5E;                /* Coral Rose */
+    --red-dim: #E11D48;
+    --amber: #F59E0B;              /* Amber */
     
-    /* 3. SAFETY & TRUST GREEN (#10B981) */
-    --green: #10b981;
+    /* Safety & Trust Green */
+    --green: #10B981;
     --green-dim: #059669;
-    --on-green: #ffffff;
+    --on-green: #FFFFFF;
     
-    --navy: #A8C4EC;
+    --navy: #10B981;
     
-    --card-border: #1D2A40;
-    --card-shadow: 0 8px 24px -6px rgba(5, 9, 20, 0.8), inset 0 1px 0 0 rgba(168, 196, 236, 0.06);
+    --card-border: #1E382E;
+    --card-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(52, 211, 153, 0.08);
     
     color-scheme: dark;
   }
 
   .sellx-root.light{
-    /* Light Mode — Clean White/Whisper Canvas */
-    --ink: #F8FAFC;                /* Light Canvas */
+    /* Light Mode — Clean Mint Slate Canvas & Emerald Accents */
+    --ink: #F4F9F6;                /* Whisper Mint Slate Canvas */
     --surface: #FFFFFF;            /* Pure White card surface */
-    --surface2: #EDF2F7;           /* Light tint for inputs & elevated */
-    --surface3: #E2E8F0;           /* Soft hover surface */
+    --surface2: #EBF5F0;           /* Light Mint tint for inputs & elevated */
+    --surface3: #DCEDE5;           /* Soft hover surface */
     --surface-elevated: #FFFFFF;
     
-    --line: #CBD5E1;               /* Hairline border */
-    --line-soft: #F1F5F9;
-    --line-highlight: #A8C4EC;
+    --line: #CBD8D2;               /* Hairline Jade Slate border */
+    --line-soft: #EEF5F2;
+    --line-highlight: #10B981;
     
-    --paper: #0D1424;              /* Deep surface text */
-    --paper-dim: #1E293B;
-    --mist: #64748B;               /* Muted text */
-    --mist-dim: #94A3B8;
+    --paper: #0A1B14;              /* Deep Forest Black text */
+    --paper-dim: #1B3227;
+    --mist: #597066;               /* Muted Sage text */
+    --mist-dim: #889E95;
     
     /* Primary & Secondary */
-    --teal: #0474C4;               /* Primary: #0474C4 */
-    --teal-dim: #06457F;           /* Secondary: #06457F */
-    --teal-glow: rgba(4, 116, 196, 0.2);
+    --teal: #059669;               /* Primary: Emerald 600 */
+    --teal-dim: #047857;           /* Secondary: Emerald 700 */
+    --teal-glow: rgba(16, 185, 129, 0.2);
     --on-teal: #FFFFFF;
     
-    --brass: #06457F;
-    --brass-dim: #0474C4;
-    --brass-text: #06457F;
+    --brass: #D97706;
+    --brass-dim: #B45309;
+    --brass-text: #B45309;
     --on-brass: #FFFFFF;
     
-    --accent: #A8C4EC;
-    --teal-accent: #2C444C;
+    --accent: #10B981;
+    --teal-accent: #D1FAE5;
     
-    --price: #0474C4;
-    --red: #e11d48;
-    --red-dim: #be123c;
-    --amber: #ea580c;
+    --price: #059669;
+    --red: #E11D48;
+    --red-dim: #BE123C;
+    --amber: #D97706;
     
-    --green: #10b981;
+    --green: #10B981;
     --green-dim: #059669;
-    --on-green: #ffffff;
+    --on-green: #FFFFFF;
     
-    --navy: #0474C4;
+    --navy: #059669;
     
-    --card-border: #CBD5E1;
-    --card-shadow: 0 4px 16px -4px rgba(13, 20, 36, 0.06);
+    --card-border: #CBD8D2;
+    --card-shadow: 0 4px 16px -4px rgba(10, 27, 20, 0.06);
     
     color-scheme: light;
   }
@@ -107,7 +107,7 @@ export const GLOBAL_STYLES = `
   /* Polished Dark Mode Box Aesthetics */
   .sellx-root:not(.light) .bg-\\[var\\(--surface\\)\\]{
     background-color: var(--surface);
-    box-shadow: inset 0 1px 0 0 rgba(168, 196, 236, 0.05);
+    box-shadow: inset 0 1px 0 0 rgba(52, 211, 153, 0.06);
   }
 
   .sellx-root:not(.light) .bg-\\[var\\(--surface2\\)\\]{
@@ -172,22 +172,190 @@ export const GLOBAL_STYLES = `
 
   .tabular-nums{ font-variant-numeric: tabular-nums; }
 
+  /* Floating Ambient Aurora Keyframes */
+  @keyframes aurora-orb-1 {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    33% {
+      transform: translate3d(100px, 60px, 0) scale(1.12);
+    }
+    66% {
+      transform: translate3d(-50px, 110px, 0) scale(0.94);
+    }
+  }
+
+  @keyframes aurora-orb-2 {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    33% {
+      transform: translate3d(-110px, -50px, 0) scale(1.15);
+    }
+    66% {
+      transform: translate3d(60px, -80px, 0) scale(0.92);
+    }
+  }
+
+  @keyframes aurora-orb-3 {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(80px, -70px, 0) scale(1.14);
+    }
+  }
+
+  @keyframes aurora-orb-4 {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(-70px, 80px, 0) scale(1.1);
+    }
+  }
+
+  .aurora-orb-1 {
+    animation: aurora-orb-1 24s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  .aurora-orb-2 {
+    animation: aurora-orb-2 28s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  .aurora-orb-3 {
+    animation: aurora-orb-3 20s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  .aurora-orb-4 {
+    animation: aurora-orb-4 26s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  /* Sine Waveform Stream Keyframes */
+  @keyframes wave-flow-1 {
+    0% {
+      transform: translate3d(0, 0, 0) scaleY(1);
+    }
+    50% {
+      transform: translate3d(-30px, 8px, 0) scaleY(1.08);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scaleY(1);
+    }
+  }
+
+  @keyframes wave-flow-2 {
+    0% {
+      transform: translate3d(0, 0, 0) scaleY(1);
+    }
+    50% {
+      transform: translate3d(40px, -10px, 0) scaleY(0.92);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scaleY(1);
+    }
+  }
+
+  @keyframes wave-flow-3 {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(-20px, -6px, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes wave-slow {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .animate-wave-flow-1 {
+    animation: wave-flow-1 12s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .animate-wave-flow-2 {
+    animation: wave-flow-2 16s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .animate-wave-flow-3 {
+    animation: wave-flow-3 14s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .animate-wave-slow {
+    animation: wave-slow 18s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  @keyframes cursor-ripple {
+    0% {
+      width: 0px;
+      height: 0px;
+      opacity: 0.9;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    100% {
+      width: 520px;
+      height: 520px;
+      opacity: 0;
+      box-shadow: 0 0 40px rgba(6, 182, 212, 0), inset 0 0 20px rgba(245, 158, 11, 0);
+    }
+  }
+
+  @keyframes transition-wave-sweep {
+    0% {
+      stroke-dashoffset: 600;
+      opacity: 0;
+      transform: scaleY(0.5);
+    }
+    30% {
+      opacity: 1;
+      transform: scaleY(1.2);
+    }
+    80% {
+      opacity: 0.9;
+      transform: scaleY(1);
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+      transform: scaleY(0.8);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce){
-    .sellx-pulse, .sellx-rise, .sellx-pop, .sellx-stamp{ animation:none !important; }
+    .sellx-pulse, .sellx-rise, .sellx-pop, .sellx-stamp, .aurora-orb-1, .aurora-orb-2, .aurora-orb-3, .aurora-orb-4, .animate-wave-flow-1, .animate-wave-flow-2, .animate-wave-flow-3, .animate-wave-slow { animation:none !important; }
   }
 `;
 
 export const CATEGORY_STYLES = {
-  Mobile: "#0474C4",
-  Computing: "#06457F",
-  Gaming: "#0474C4",
-  Appliances: "#2C444C",
-  Audio: "#8896AA",
-  Vehicles: "#06457F",
-  Photography: "#0474C4",
-  "Music & Gear": "#8896AA",
-  "Fitness & Outdoors": "#2C444C",
-  Wearables: "#A8C4EC",
+  Mobile: "#10B981",
+  Computing: "#14B8A6",
+  Gaming: "#F59E0B",
+  Appliances: "#059669",
+  Audio: "#06B6D4",
+  Vehicles: "#D97706",
+  Photography: "#10B981",
+  "Music & Gear": "#34D399",
+  "Fitness & Outdoors": "#84CC16",
+  Wearables: "#F59E0B",
 };
 
 export function hexToRgba(hex, alpha) {
@@ -198,7 +366,7 @@ export function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export const catColor = (category) => CATEGORY_STYLES[category] || "#0474C4";
+export const catColor = (category) => CATEGORY_STYLES[category] || "#10B981";
 
 export const healthColor = {
   critical: "var(--red)",

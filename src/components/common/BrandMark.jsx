@@ -26,19 +26,19 @@ export function BrandMark({ size = "md", wordmark = true, inverted = false }) {
             y2="40"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={inverted ? "#FFFFFF" : "#0474C4"} />
-            <stop offset="100%" stopColor={inverted ? "#BAE6FD" : "#06457F"} />
+            <stop offset="0%" stopColor={inverted ? "#FFFFFF" : "#10B981"} />
+            <stop offset="100%" stopColor={inverted ? "#A7F3D0" : "#059669"} />
           </linearGradient>
           <linearGradient
             id={`sx-grad-2-${gradId}`}
             x1="40"
             y1="8"
             x2="8"
-            gradientUnits="userSpaceOnUse"
             y2="40"
+            gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={inverted ? "#38BDF8" : "#A8C4EC"} />
-            <stop offset="100%" stopColor={inverted ? "#FFFFFF" : "#0474C4"} />
+            <stop offset="0%" stopColor={inverted ? "#FDE68A" : "#F59E0B"} />
+            <stop offset="100%" stopColor={inverted ? "#FFFFFF" : "#10B981"} />
           </linearGradient>
         </defs>
 
@@ -86,8 +86,8 @@ export function BrandMark({ size = "md", wordmark = true, inverted = false }) {
           <span
             style={{
               background: inverted
-                ? "linear-gradient(135deg, #BAE6FD 0%, #38BDF8 100%)"
-                : "linear-gradient(135deg, #0474C4 0%, #A8C4EC 100%)",
+                ? "linear-gradient(135deg, #A7F3D0 0%, #FDE68A 100%)"
+                : "linear-gradient(135deg, #10B981 0%, #F59E0B 100%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",
