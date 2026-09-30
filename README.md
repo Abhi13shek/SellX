@@ -59,7 +59,7 @@ graph TD
         DEAL_API["/api/deals"]
         COPILOT_API["/api/copilot"]
         AUTH_API["/api/auth"]
-        STORAGE[Persistent JSON Data Store]
+        STORAGE[MySQL or local JSON Data Store]
     end
 
     UI --> API_CLIENT
@@ -88,7 +88,7 @@ graph TD
 | **Styling** | [TailwindCSS v4](https://tailwindcss.com/) + Custom CSS Design System |
 | **Icons** | [Lucide React](https://lucide.dev/) |
 | **Backend API** | [Express 5](https://expressjs.com/) on [Node.js](https://nodejs.org/) |
-| **Data Persistence** | File-backed JSON database with synchronous atomic sync & fallback |
+| **Data Persistence** | MySQL state table (optional) with local JSON fallback |
 | **Concurrency** | [Concurrently](https://www.npmjs.com/package/concurrently) for single-command full-stack development |
 
 ---
@@ -153,6 +153,13 @@ The application will be accessible at:
 - **Frontend App**: [http://localhost:5174](http://localhost:5174) (or `http://localhost:5173`)
 - **Backend API**: [http://localhost:5001](http://localhost:5001)
 - **API Health Check**: [http://localhost:5001/health](http://localhost:5001/health)
+
+### Connect MySQL (Optional)
+1. Create a MySQL database, for example `sellx`.
+2. Copy `.env.example` to `.env` and set `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, and `MYSQL_DATABASE` to your MySQL connection details.
+3. Run `npm run dev`. The backend creates the `sellx_state` table automatically. Existing `server/data_storage/db.json` data is imported the first time the MySQL table is empty.
+
+When `MYSQL_HOST` is empty, the backend uses the local JSON database at `server/data_storage/db.json` instead. Keep `.env` private; it is ignored by Git.
 
 ### Running Services Separately (Optional)
 ```bash
