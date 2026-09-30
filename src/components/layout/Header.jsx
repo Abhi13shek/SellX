@@ -162,13 +162,14 @@ export function Header({
             </button>
 
             {/* Seller Sign Out */}
-            {role === "seller" && sellerAuthed && (
+            {sellerAuthed && (
               <button
                 onClick={onSignOut}
-                className="flex items-center justify-center w-9 h-9 rounded-full border border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
                 title="Sign out from Seller Desk"
               >
                 <LogOut size={14} />
+                <span>Sign out</span>
               </button>
             )}
           </div>

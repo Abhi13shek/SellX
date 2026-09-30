@@ -28,9 +28,15 @@ async function startServer() {
     const shutdown = () => {
       logger.info("Gracefully shutting down server...");
       server.close(() => {
-        db.saveSync();
-        logger.info("Database state saved. Server terminated.");
-        process.exit(0);
+        db.close()
+          .then(() => {
+            logger.info("Database state saved. Server terminated.");
+            process.exit(0);
+          })
+          .catch((err) => {
+            logger.error("Failed to close database connection:", err);
+            process.exit(1);
+          });
       });
     };
 

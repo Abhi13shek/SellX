@@ -38,10 +38,27 @@ import { PaymentModal } from "./components/modals/PaymentModal.jsx";
 import { AutomationRulesModal } from "./components/modals/AutomationRulesModal.jsx";
 import { FooterInfoPage } from "./components/pages/FooterInfoPage.jsx";
 
+const SELLER_SESSION_KEY = "sellx:seller-session";
+
+function getStoredSellerSession() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SELLER_SESSION_KEY));
+    if (!stored || typeof stored.token !== "string" || !stored.user?.id) return null;
+    const { id, email, name, role, verified, createdAt } = stored.user;
+    return {
+      token: stored.token,
+      user: { id, email, name, role, verified, ...(createdAt == null ? {} : { createdAt }) },
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
   const [theme, setTheme] = useState("light");
-  const [role, setRole] = useState("buyer");
-  const [sellerAuthed, setSellerAuthed] = useState(false);
+  const [sellerSession, setSellerSession] = useState(getStoredSellerSession);
+  const [role, setRole] = useState("seller");
+  const [sellerAuthed, setSellerAuthed] = useState(() => Boolean(sellerSession));
   const [activeTab, setActiveTab] = useState("catalog");
   const [deals, setDeals] = useState(INITIAL_DEALS);
   const [activeDealId, setActiveDealId] = useState(null);
@@ -373,18 +390,25 @@ export default function App() {
   );
 
   // If in Seller Login view, render dedicated full-screen login without Header and Footer
-  if (role === "seller" && !sellerAuthed) {
+  if (!sellerAuthed) {
     return (
       <div className={`sellx-root ${theme} min-h-screen bg-[var(--ink)] text-[var(--paper)] font-body flex flex-col`}>
         <style>{GLOBAL_STYLES}</style>
         <SellerLoginPage
           theme={theme}
           setTheme={setTheme}
-          onLogin={() => {
+          onLogin={(session) => {
+            const { id, email, name, role, verified, createdAt } = session.user;
+            const safeSession = {
+              token: session.token,
+              user: { id, email, name, role, verified, ...(createdAt == null ? {} : { createdAt }) },
+            };
+            localStorage.setItem(SELLER_SESSION_KEY, JSON.stringify(safeSession));
+            setSellerSession(safeSession);
             setSellerAuthed(true);
+            setRole("seller");
             pushNotification("Signed in to Seller Trade Desk.", { icon: Store, tone: "brass" });
           }}
-          onContinueAsBuyer={() => setRole("buyer")}
         />
         <NotificationDrawer
           open={notifOpen}
@@ -423,8 +447,10 @@ export default function App() {
         sellerAuthed={sellerAuthed}
         onOpenAddItem={() => setAddItemOpen(true)}
         onSignOut={() => {
+          localStorage.removeItem(SELLER_SESSION_KEY);
+          setSellerSession(null);
           setSellerAuthed(false);
-          setRole("buyer");
+          setRole("seller");
           pushNotification("Signed out of seller trade desk.", { icon: Store, tone: "neutral" });
         }}
       />

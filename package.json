@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan.bold,green.bold\" \"npm run server\" \"npm run client\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan.bold,green.bold\" \"PORT=5004 npm run server\" \"VITE_API_PROXY_TARGET=http://localhost:5004 npm run client\"",
     "client": "vite",
     "server": "node server/index.js",
     "build": "vite build"
@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "lucide-react": "^0.400.0",
     "morgan": "^1.12.0",
+    "mysql2": "^3.24.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
