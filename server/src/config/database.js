@@ -57,12 +57,19 @@ class Database {
         } else if (this.isEmpty(relationalState) && fs.existsSync(DB_FILE)) {
           const localState = this.normalizeState(JSON.parse(fs.readFileSync(DB_FILE, "utf-8")));
           await migrateState(this.pool, localState);
+          logger.info("Imported local JSON database into relational tables.");
         } else if (this.isEmpty(relationalState)) {
           this.seed();
           await migrateState(this.pool, this.data);
         }
 
-        this.data = await loadRelationalState(this.pool);
+        relationalState = await loadRelationalState(this.pool);
+        if (this.isEmpty(relationalState)) {
+          this.seed();
+          await migrateState(this.pool, this.data);
+          relationalState = await loadRelationalState(this.pool);
+        }
+        this.data = relationalState;
         this.persistedData = this.cloneState(this.data);
         this.initialized = true;
         logger.success(
@@ -87,8 +94,7 @@ class Database {
       }
 
       // Seed database if empty
-      this.data.products = [...SEED_PRODUCTS];
-      this.data.deals = getSeedDeals(this.data.products);
+      this.seed();
       this.saveSync();
       logger.success(`Initialized fresh database with ${this.data.products.length} products and ${this.data.deals.length} deals.`);
       this.initialized = true;
@@ -107,8 +113,7 @@ class Database {
   }
 
   reset() {
-    this.data.products = [...SEED_PRODUCTS];
-    this.data.deals = getSeedDeals(this.data.products);
+    this.seed();
     this.saveSync();
     logger.success(`Reset database with ${this.data.products.length} products and ${this.data.deals.length} deals.`);
     return this.data;

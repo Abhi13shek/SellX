@@ -1,4 +1,4 @@
-const USER_FIELDS = ["id", "email", "name", "role", "verified", "createdAt", "passwordHash"];
+const USER_FIELDS = ["id", "email", "name", "role", "verified", "createdAt"];
 const PRODUCT_FIELDS = [
   "id", "sku", "name", "category", "image", "basePrice", "cost",
   "minAcceptablePrice", "condition", "city", "locality", "distanceKm",
@@ -24,7 +24,6 @@ const SCHEMA = [
     name VARCHAR(255) NOT NULL,
     role VARCHAR(64) NOT NULL,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
-    password_hash VARCHAR(255) NULL,
     created_at BIGINT NULL,
     extra_json JSON NULL,
     sort_order INT NOT NULL DEFAULT 0
@@ -157,7 +156,6 @@ function userRow(user, position) {
     name: user.name || "Verified Partner",
     role: user.role || "seller",
     verified: !!user.verified,
-    password_hash: user.passwordHash ?? null,
     created_at: user.createdAt ?? null,
     extra_json: jsonString(extras(user, USER_FIELDS)),
     sort_order: position,
@@ -256,14 +254,6 @@ function notificationRow(notification, position) {
 
 export async function ensureRelationalSchema(pool) {
   for (const statement of SCHEMA) await pool.query(statement);
-  const [columns] = await pool.execute(
-    `SELECT COUNT(*) AS column_count
-     FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'password_hash'`
-  );
-  if (Number(columns[0].column_count) === 0) {
-    await pool.query("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) NULL AFTER verified");
-  }
 }
 
 export async function readBackupState(pool) {
@@ -362,7 +352,6 @@ export async function loadRelationalState(pool) {
       name: row.name,
       role: row.role,
       verified: !!row.verified,
-      passwordHash: row.password_hash || null,
       ...(row.created_at == null ? {} : { createdAt: asNumber(row.created_at) }),
     })),
     products: products.map((row) => ({
