@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  ArrowLeft,
   Sun,
   Moon,
   Store,
@@ -11,46 +10,59 @@ import {
   Loader2,
   Check,
   AlertTriangle,
-  Info,
   Shield,
 } from "lucide-react";
 import { BrandMark } from "../common/BrandMark.jsx";
 import { Badge } from "../common/Badge.jsx";
 import { FieldLabel } from "../common/FieldLabel.jsx";
-import { PrimaryButton, GhostButton } from "../common/Buttons.jsx";
+import { PrimaryButton } from "../common/Buttons.jsx";
 import { SELLER_PERKS } from "../../data/constants.js";
+import { api } from "../../services/api.js";
 
-export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer }) {
+export function SellerLoginPage({ theme, setTheme, onLogin }) {
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [demoNote, setDemoNote] = useState("");
 
-  const flashDemoNote = (msg) => {
-    setDemoNote(msg);
-    setTimeout(() => setDemoNote(""), 3200);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const emailOk = /^\S+@\S+\.\S+$/.test(email.trim());
     if (!emailOk) {
-      setError("Enter a valid business email address.");
+      setError("Enter a valid email address.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (mode === "register" && password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
+    if (mode === "register" && password !== passwordConfirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setError("");
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const session = mode === "register"
+        ? await api.register({ email: email.trim(), password })
+        : await api.login({ email: email.trim(), password });
+      onLogin(session);
+    } catch (requestError) {
+      setError(requestError.message || "Unable to authenticate. Please try again.");
+    } finally {
       setLoading(false);
-      onLogin();
-    }, 800);
+    }
+  };
+
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
+    setError("");
+    setPassword("");
+    setPasswordConfirm("");
   };
 
   return (
@@ -107,12 +119,7 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
       <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 bg-[var(--surface)]">
         {/* Top bar controls */}
         <div className="flex items-center justify-between w-full">
-          <button
-            onClick={onContinueAsBuyer}
-            className="flex items-center gap-1.5 text-sm font-semibold text-[var(--mist)] hover:text-[var(--paper)] transition-colors"
-          >
-            <ArrowLeft size={15} /> Continue as buyer
-          </button>
+          <BrandMark size="sm" wordmark={true} />
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface2)] transition-colors"
@@ -127,13 +134,30 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
             <Store size={11} /> Seller portal
           </Badge>
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--paper)] mt-3">
-            Sign in to your trade desk
+            {mode === "login" ? "Sign in to your trade desk" : "Create your seller account"}
           </h2>
           <p className="text-sm text-[var(--mist)] mt-1.5">
-            Manage inbound RFQs, negotiate live terms, and lock deals directly.
+            {mode === "login"
+              ? "Manage inbound RFQs, negotiate live terms, and lock deals directly."
+              : "Create an account to manage RFQs and negotiate directly."}
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface2)] p-1" role="tablist" aria-label="Seller account mode">
+            {[{ id: "login", label: "Sign in" }, { id: "register", label: "Create account" }].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={mode === item.id}
+                onClick={() => switchMode(item.id)}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${mode === item.id ? "bg-[var(--surface)] text-[var(--paper)] shadow-sm" : "text-[var(--mist)] hover:text-[var(--paper)]"}`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             {error && (
               <div className="flex items-start gap-2 p-3 rounded-xl bg-[var(--red)]/10 border border-[var(--red)]/30 ledgr-rise">
                 <AlertTriangle size={14} className="text-[var(--red)] shrink-0 mt-0.5" />
@@ -151,6 +175,7 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   autoComplete="email"
+                  required
                   className="w-full bg-transparent py-2.5 text-sm text-[var(--paper)] outline-none placeholder:text-[var(--mist-dim)]"
                 />
               </div>
@@ -159,17 +184,7 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-[var(--mist)]">Password</label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    flashDemoNote(
-                      "Password reset isn't wired up in this demo — try any email with a 6+ character password."
-                    )
-                  }
-                  className="text-[11px] font-semibold text-[var(--teal)] hover:underline"
-                >
-                  Forgot password?
-                </button>
+                {mode === "register" && <span className="text-[11px] text-[var(--mist-dim)]">At least 8 characters</span>}
               </div>
               <div className="flex items-center gap-2 bg-[var(--surface2)] border border-[var(--line)] rounded-xl px-3 focus-within:border-[var(--teal)] transition-colors">
                 <KeyRound size={15} className="text-[var(--mist)]" />
@@ -178,7 +193,9 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  autoComplete="current-password"
+                  autoComplete={mode === "register" ? "new-password" : "current-password"}
+                  minLength={mode === "register" ? 8 : undefined}
+                  required
                   className="w-full bg-transparent py-2.5 text-sm text-[var(--paper)] outline-none placeholder:text-[var(--mist-dim)]"
                 />
                 <button
@@ -191,62 +208,46 @@ export function SellerLoginPage({ theme, setTheme, onLogin, onContinueAsBuyer })
               </div>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="w-4 h-4 rounded accent-[var(--teal)]"
-              />
-              <span className="text-xs text-[var(--mist)]">Keep me signed in on this device</span>
-            </label>
+            {mode === "register" && (
+              <div>
+                <FieldLabel>Confirm password</FieldLabel>
+                <div className="flex items-center gap-2 bg-[var(--surface2)] border border-[var(--line)] rounded-xl px-3 focus-within:border-[var(--teal)] transition-colors">
+                  <KeyRound size={15} className="text-[var(--mist)]" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    placeholder="Repeat your password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    required
+                    className="w-full bg-transparent py-2.5 text-sm text-[var(--paper)] outline-none placeholder:text-[var(--mist-dim)]"
+                  />
+                </div>
+              </div>
+            )}
 
             <PrimaryButton type="submit" tone="teal" disabled={loading} className="w-full">
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 size={15} className="animate-spin" /> Signing in…
+                  <Loader2 size={15} className="animate-spin" /> {mode === "login" ? "Signing in…" : "Creating account…"}
                 </span>
               ) : (
-                "Sign in to trade desk"
+                mode === "login" ? "Sign in to trade desk" : "Create account"
               )}
             </PrimaryButton>
-
-            <p className="text-[11px] text-center text-[var(--mist-dim)] pt-1">
-              Demo mode — enter any business email &amp; a password of 6+ characters.
-            </p>
           </form>
 
-          <div className="flex items-center gap-3 my-6">
-            <div className="h-px flex-1 bg-[var(--line)]" />
-            <span className="text-[11px] uppercase tracking-wider text-[var(--mist-dim)] font-mono">or</span>
-            <div className="h-px flex-1 bg-[var(--line)]" />
-          </div>
-
-          <GhostButton
-            className="w-full"
-            onClick={() => flashDemoNote("Google SSO is simulated in this demo — use the form above instead.")}
-          >
-            Continue with Google Workspace
-          </GhostButton>
-
           <p className="text-sm text-center text-[var(--mist)] mt-6">
-            New to SellX?{" "}
+            {mode === "login" ? "New to SellX?" : "Already have an account?"}{" "}
             <button
-              onClick={() =>
-                flashDemoNote("Seller applications are open — sign in above to explore the trade desk.")
-              }
+              type="button"
+              onClick={() => switchMode(mode === "login" ? "register" : "login")}
               className="font-semibold text-[var(--teal)] hover:underline"
             >
-              Apply to become a verified supplier
+              {mode === "login" ? "Create an account" : "Sign in"}
             </button>
           </p>
-
-          {demoNote && (
-            <div className="ledgr-rise mt-4 flex items-start gap-2 p-3 rounded-xl bg-[var(--surface2)] border border-[var(--line)]">
-              <Info size={14} className="text-[var(--teal)] shrink-0 mt-0.5" />
-              <span className="text-xs text-[var(--mist)] leading-relaxed">{demoNote}</span>
-            </div>
-          )}
         </div>
 
         {/* Empty bottom spacer for equal vertical alignment */}

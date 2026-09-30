@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan.bold,green.bold\" \"npm run server\" \"npm run client\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan.bold,green.bold\" \"PORT=5004 npm run server\" \"VITE_API_PROXY_TARGET=http://localhost:5004 npm run client\"",
     "client": "vite",
     "server": "node server/index.js",
     "build": "vite build"

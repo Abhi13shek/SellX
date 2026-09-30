@@ -135,6 +135,14 @@ export const api = {
   },
 
   // Auth
+  async register({ email, password }) {
+    const res = await request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    return res.data;
+  },
+
   async login({ email, password }) {
     const res = await request("/auth/login", {
       method: "POST",
