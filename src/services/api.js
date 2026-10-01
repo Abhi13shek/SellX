@@ -128,6 +128,14 @@ export const api = {
     return res.data;
   },
 
+  async recommendBuyerProduct({ category, budget, priorities, query }) {
+    const res = await request("/copilot/recommend", {
+      method: "POST",
+      body: JSON.stringify({ category, budget, priorities, query }),
+    });
+    return res.data;
+  },
+
   // Stats
   async getStats() {
     const res = await request("/stats");

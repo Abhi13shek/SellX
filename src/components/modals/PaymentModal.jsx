@@ -6,7 +6,7 @@ import { GhostButton, PrimaryButton } from "../common/Buttons.jsx";
 import { PAYMENT_METHODS, BANKS } from "../../data/constants.js";
 import { fmtINR } from "../../utils/formatters.js";
 
-export function PaymentModal({ deal, onClose, onConfirm }) {
+export function PaymentModal({ deal, onClose, onConfirm, onOpenInvoice }) {
   const [step, setStep] = useState("select");
   const [method, setMethod] = useState("upi");
   const [upiId, setUpiId] = useState("");
@@ -213,8 +213,19 @@ export function PaymentModal({ deal, onClose, onConfirm }) {
                 {deal.sellerName} has been notified. Order fulfillment begins now.
               </p>
             </div>
-            <div className="p-5 border-t border-[var(--line)]">
-              <PrimaryButton tone="teal" className="w-full" onClick={onClose}>
+            <div className="p-5 border-t border-[var(--line)] flex items-center gap-2">
+              {onOpenInvoice && (
+                <GhostButton
+                  className="flex-1 text-xs"
+                  onClick={() => {
+                    onClose();
+                    onOpenInvoice(deal);
+                  }}
+                >
+                  View Invoice &amp; Bill of Sale
+                </GhostButton>
+              )}
+              <PrimaryButton tone="teal" className="flex-1" onClick={onClose}>
                 Done
               </PrimaryButton>
             </div>

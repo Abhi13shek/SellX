@@ -48,7 +48,7 @@ export function PageTransitionWave({ triggerKey }) {
             animation: "transition-wave-sweep 0.75s ease-out forwards",
           }}
         />
-        
+
         {/* Subtle Counter Sine Wave */}
         <path
           d="M0,20 Q150,35 300,20 T600,20 T900,20 T1200,20"

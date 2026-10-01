@@ -26,6 +26,8 @@ import {
   Info,
   CreditCard,
   Lock,
+  Printer,
+  FileCheck,
 } from "lucide-react";
 import { CategoryIcon } from "../common/Icons.jsx";
 import { ChatMessage } from "./ChatMessage.jsx";
@@ -51,6 +53,7 @@ export function DealRoomActive({
   onOpenAccept,
   onDecline,
   onOpenPayment,
+  onOpenInvoice,
 }) {
   const [chatText, setChatText] = useState("");
   const [counterNote, setCounterNote] = useState("");
@@ -305,6 +308,28 @@ export function DealRoomActive({
               ))}
             </div>
 
+            {/* Quick Action / Reply Shortcut Chips */}
+            <div className="px-3 pt-2.5 pb-1.5 border-t border-[var(--line)] bg-[var(--surface2)]/60 flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px]">
+              <span className="text-[10px] uppercase font-bold text-[var(--mist-dim)] shrink-0 mr-1">Quick:</span>
+              {[
+                "Can pay immediately via UPI ⚡",
+                "Is original box included?",
+                "Can we do meetup today?",
+                "Lowest floor price?",
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => {
+                    if (onSendMessage) onSendMessage(chip, deal?.id);
+                  }}
+                  className="px-2.5 py-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface3)] hover:border-emerald-500/40 text-[var(--paper)] whitespace-nowrap transition-all text-[11px] font-medium shrink-0 cursor-pointer shadow-2xs active:scale-95"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
             {/* Input Bar */}
             <div className="p-3 border-t border-[var(--line)] flex items-center gap-2 bg-[var(--surface2)]/40 rounded-b-2xl">
               <input
@@ -317,7 +342,7 @@ export function DealRoomActive({
               <button
                 onClick={handleSend}
                 disabled={!chatText.trim()}
-                className="w-10 h-10 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] flex items-center justify-center disabled:opacity-40 hover:bg-[var(--teal-dim)] transition-all shrink-0 shadow-sm active:scale-95"
+                className="w-10 h-10 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] flex items-center justify-center disabled:opacity-40 hover:bg-[var(--teal-dim)] transition-all shrink-0 shadow-sm active:scale-95 cursor-pointer"
                 title="Send message"
               >
                 <Send size={15} />
@@ -329,7 +354,9 @@ export function DealRoomActive({
         {/* RIGHT: TERM SHEET + INTERACTIVE COUNTER + COPILOT (4 or 5 cols) */}
         <div className={`${sidebarOpen && deals.length > 1 ? "lg:col-span-4" : "lg:col-span-5"} space-y-4`}>
           {/* Term Sheet / Handover Agreement Card */}
-          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:p-5 relative overflow-hidden shadow-sm">
+          <div className={`rounded-2xl border bg-[var(--surface)] p-4 sm:p-5 relative overflow-hidden shadow-sm transition-all ${
+            !disabled ? "border-emerald-500/50 pulse-ring" : "border-[var(--line)]"
+          }`}>
             {locked && (
               <div className="sellx-stamp absolute top-3 right-3 border-2 border-[var(--green)] text-[var(--green)] rounded-lg px-2.5 py-1 text-[11px] font-display font-bold tracking-widest -rotate-6 bg-[var(--green)]/10">
                 AGREED
@@ -400,35 +427,46 @@ export function DealRoomActive({
             </div>
 
             {/* Escrow Lock Banner / 1-Click Pay */}
-            {locked && role === "buyer" && (
-              <div className="mt-4 pt-3 border-t border-[var(--line)]">
-                {ts.paymentStatus === "paid" ? (
-                  <div className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--green)]/10 border border-[var(--green)]/30 text-xs font-semibold text-[var(--green)]">
-                    <CheckCircle2 size={14} /> Payment Complete · Escrow Held Safely
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => onOpenPayment && onOpenPayment(deal.id)}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-md active:scale-95"
+            {locked && (
+              <div className="mt-4 pt-3 border-t border-[var(--line)] space-y-2">
+                {role === "buyer" && (
+                  ts.paymentStatus === "paid" ? (
+                    <div className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--green)]/10 border border-[var(--green)]/30 text-xs font-semibold text-[var(--green)]">
+                      <CheckCircle2 size={14} /> Payment Complete · Escrow Held Safely
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onOpenPayment && onOpenPayment(deal.id)}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-md active:scale-95 cursor-pointer"
+                    >
+                      <CreditCard size={14} /> Pay {fmtINR(ts.unitPrice)} via Safe Escrow
+                    </button>
+                  )
+                )}
+
+                {role === "seller" && (
+                  <div
+                    className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold ${
+                      ts.paymentStatus === "paid"
+                        ? "bg-[var(--green)]/10 border-[var(--green)]/30 text-[var(--green)]"
+                        : "bg-[var(--surface2)] border-[var(--line)] text-[var(--mist)]"
+                    }`}
                   >
-                    <CreditCard size={14} /> Pay {fmtINR(ts.unitPrice)} via Safe Escrow
+                    {ts.paymentStatus === "paid" ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                    {ts.paymentStatus === "paid" ? "Buyer has deposited funds in Escrow" : "Buyer preparing payment / local cash"}
+                  </div>
+                )}
+
+                {onOpenInvoice && (
+                  <button
+                    onClick={() => onOpenInvoice(deal)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[var(--line)] bg-[var(--surface2)] hover:bg-[var(--surface3)] text-[var(--paper)] text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                    title="View official digital contract, tax invoice, and Bill of Sale"
+                  >
+                    <FileCheck size={14} className="text-emerald-500" />
+                    <span>View Recommerce Bill of Sale &amp; Invoice</span>
                   </button>
                 )}
-              </div>
-            )}
-
-            {locked && role === "seller" && (
-              <div className="mt-4 pt-3 border-t border-[var(--line)]">
-                <div
-                  className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold ${
-                    ts.paymentStatus === "paid"
-                      ? "bg-[var(--green)]/10 border-[var(--green)]/30 text-[var(--green)]"
-                      : "bg-[var(--surface2)] border-[var(--line)] text-[var(--mist)]"
-                  }`}
-                >
-                  {ts.paymentStatus === "paid" ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-                  {ts.paymentStatus === "paid" ? "Buyer has deposited funds in Escrow" : "Buyer preparing payment / local cash"}
-                </div>
               </div>
             )}
           </div>

@@ -13,6 +13,7 @@ import {
   Calendar,
   Send,
   SlidersHorizontal,
+  FileCheck,
 } from "lucide-react";
 import { CategoryIcon } from "../common/Icons.jsx";
 import { Badge } from "../common/Badge.jsx";
@@ -36,6 +37,7 @@ export function DealRoom({
   onRequestDecline,
   onOpenPayment,
   onOpenCatalog,
+  onOpenInvoice,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -61,6 +63,7 @@ export function DealRoom({
         onDecline={handleDecline}
         onOpenPayment={onOpenPayment}
         onOpenCatalog={onOpenCatalog}
+        onOpenInvoice={onOpenInvoice}
       />
     );
   }
@@ -269,16 +272,31 @@ export function DealRoom({
                     </span>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      selectDeal(deal.id);
-                    }}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-sm"
-                  >
-                    <span>Open Chat</span>
-                    <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {isLocked && onOpenInvoice && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenInvoice(deal);
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface2)] hover:bg-[var(--surface3)] text-emerald-600 dark:text-emerald-400 text-xs font-semibold transition-all shadow-xs"
+                        title="View Recommerce Bill of Sale & Tax Invoice"
+                      >
+                        <FileCheck size={13} />
+                        <span>Invoice</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectDeal(deal.id);
+                      }}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-sm"
+                    >
+                      <span>Open Chat</span>
+                      <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

@@ -5,18 +5,20 @@ import { GhostButton, PrimaryButton } from "../common/Buttons.jsx";
 import { BUYER_QUICK_OFFERS } from "../../data/constants.js";
 import { fmtINR } from "../../utils/formatters.js";
 
-export function RFQModal({ product, onClose, onSubmit }) {
-  const [targetPrice, setTargetPrice] = useState(product ? Math.round(product.basePrice * 0.9).toString() : "");
+export function RFQModal({ product, onClose, onSubmit, initialPrice = null }) {
+  const [targetPrice, setTargetPrice] = useState(
+    initialPrice ? initialPrice.toString() : product ? Math.round(product.basePrice * 0.9).toString() : ""
+  );
   const [handoverType, setHandoverType] = useState("Local Meetup");
   const [notes, setNotes] = useState("Can pick up today and pay via UPI upon inspection!");
 
   useEffect(() => {
     if (product) {
-      setTargetPrice(Math.round(product.basePrice * 0.9).toString());
+      setTargetPrice(initialPrice ? initialPrice.toString() : Math.round(product.basePrice * 0.9).toString());
       setHandoverType("Local Meetup");
       setNotes("Can pick up today and pay via UPI upon inspection!");
     }
-  }, [product]);
+  }, [product, initialPrice]);
 
   if (!product) return null;
 

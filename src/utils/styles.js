@@ -172,6 +172,48 @@ export const GLOBAL_STYLES = `
 
   .tabular-nums{ font-variant-numeric: tabular-nums; }
 
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 35s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45);
+    }
+    70% {
+      box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+  .pulse-ring {
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-20px) rotate(0deg) scale(0.8);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg) scale(1.1);
+      opacity: 0;
+    }
+  }
+  .animate-confetti {
+    animation: confetti-fall 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
   /* Floating Ambient Aurora Keyframes */
   @keyframes aurora-orb-1 {
     0%, 100% {

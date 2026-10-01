@@ -1,4 +1,5 @@
 import { DealModel } from "../models/DealModel.js";
+import { ProductModel } from "../models/ProductModel.js";
 import { aiEngineService } from "../services/aiEngineService.js";
 
 export const copilotController = {
@@ -27,6 +28,23 @@ export const copilotController = {
 
       const insights = aiEngineService.getSellerInsights(deal);
       res.json({ success: true, data: insights });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  recommendBuyerProduct(req, res, next) {
+    try {
+      const { category, budget, priorities = [], query = "" } = req.body;
+      const products = ProductModel.findAll();
+      const recommendation = aiEngineService.recommendBuyerProduct({
+        category,
+        budget: Number(budget) || null,
+        priorities,
+        query,
+        products,
+      });
+      res.json({ success: true, data: recommendation });
     } catch (err) {
       next(err);
     }

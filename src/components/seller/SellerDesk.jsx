@@ -17,6 +17,7 @@ export function SellerDesk({
   onQuickReject,
   onAddItem,
   onOpenAutomationRules,
+  onOpenInvoice,
 }) {
   const grouped = useMemo(() => {
     const g = {
@@ -183,6 +184,7 @@ export function SellerDesk({
             onQuickAccept={() => onQuickAccept(deal.id)}
             onQuickCounter={(pct) => onQuickCounter(deal.id, pct)}
             onQuickReject={() => onQuickReject(deal.id)}
+            onOpenInvoice={onOpenInvoice}
           />
         ))}
       </div>

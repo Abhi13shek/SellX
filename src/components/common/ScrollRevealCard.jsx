@@ -8,7 +8,6 @@ export function ScrollRevealCard({ children, index = 0, className = "", ...props
     const el = ref.current;
     if (!el) return;
 
-    // Fallback if IntersectionObserver is not supported
     if (typeof IntersectionObserver === "undefined") {
       setIsVisible(true);
       return;
@@ -31,7 +30,6 @@ export function ScrollRevealCard({ children, index = 0, className = "", ...props
     return () => observer.disconnect();
   }, []);
 
-  // Stagger column animation slightly for a natural cascading flow
   const staggerDelay = `${Math.min((index % 4) * 55, 200)}ms`;
 
   return (

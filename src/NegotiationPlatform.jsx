@@ -35,8 +35,12 @@ import { AddItemModal } from "./components/modals/AddItemModal.jsx";
 import { AcceptConfirmModal } from "./components/modals/AcceptConfirmModal.jsx";
 import { DeclineConfirmModal } from "./components/modals/DeclineConfirmModal.jsx";
 import { PaymentModal } from "./components/modals/PaymentModal.jsx";
+import { InvoiceModal } from "./components/modals/InvoiceModal.jsx";
 import { AutomationRulesModal } from "./components/modals/AutomationRulesModal.jsx";
+import { Confetti } from "./components/common/Confetti.jsx";
 import { FooterInfoPage } from "./components/pages/FooterInfoPage.jsx";
+import { BuyerCopilotModal } from "./components/copilot/BuyerCopilotModal.jsx";
+import { BuyerCopilotFloatingButton } from "./components/copilot/BuyerCopilotFloatingButton.jsx";
 
 const SELLER_SESSION_KEY = "sellx:seller-session";
 
@@ -57,15 +61,19 @@ function getStoredSellerSession() {
 export default function App() {
   const [theme, setTheme] = useState("light");
   const [sellerSession, setSellerSession] = useState(getStoredSellerSession);
-  const [role, setRole] = useState("seller");
+  const [role, setRole] = useState(() => (getStoredSellerSession() ? "seller" : "buyer"));
   const [sellerAuthed, setSellerAuthed] = useState(() => Boolean(sellerSession));
   const [activeTab, setActiveTab] = useState("catalog");
+  const [authViewOpen, setAuthViewOpen] = useState(false);
+  const [authTargetTab, setAuthTargetTab] = useState(null);
   const [deals, setDeals] = useState(INITIAL_DEALS);
   const [activeDealId, setActiveDealId] = useState(null);
   const [automationProduct, setAutomationProduct] = useState(null);
   const [footerInfoTopic, setFooterInfoTopic] = useState(null);
 
+  const [copilotOpen, setCopilotOpen] = useState(false);
   const [rfqProduct, setRfqProduct] = useState(null);
+  const [rfqInitialPrice, setRfqInitialPrice] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -87,6 +95,8 @@ export default function App() {
   const [acceptModal, setAcceptModal] = useState({ dealId: null, viewOnly: false });
   const [declineModal, setDeclineModal] = useState({ dealId: null, role: null });
   const [paymentModal, setPaymentModal] = useState({ dealId: null });
+  const [invoiceDeal, setInvoiceDeal] = useState(null);
+  const [confettiActive, setConfettiActive] = useState(false);
 
   // Load initial products and deals from backend API
   useEffect(() => {
@@ -111,14 +121,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setActiveTab(role === "buyer" ? "catalog" : "desk");
-    setDetailProduct(null);
-  }, [role]);
-
-  useEffect(() => {
     const handleEscape = (e) => {
       if (e.key !== "Escape") return;
-      if (rfqProduct) setRfqProduct(null);
+      if (invoiceDeal) setInvoiceDeal(null);
+      else if (copilotOpen) setCopilotOpen(false);
+      else if (rfqProduct) { setRfqProduct(null); setRfqInitialPrice(null); }
       else if (addItemOpen) setAddItemOpen(false);
       else if (detailProduct) setDetailProduct(null);
       else if (acceptModal.dealId) setAcceptModal({ dealId: null, viewOnly: false });
@@ -129,7 +136,7 @@ export default function App() {
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [rfqProduct, addItemOpen, detailProduct, acceptModal.dealId, declineModal.dealId, paymentModal.dealId, cartOpen, notifOpen]);
+  }, [invoiceDeal, copilotOpen, rfqProduct, addItemOpen, detailProduct, acceptModal.dealId, declineModal.dealId, paymentModal.dealId, cartOpen, notifOpen]);
 
   const pushNotification = (text, { icon = Info, tone = "teal", dealId } = {}) => {
     setNotifications((prev) => [{ id: genId("n"), text, icon, tone, dealId }, ...prev].slice(0, 30));
@@ -150,7 +157,27 @@ export default function App() {
   const goToTab = (tab) => {
     setDetailProduct(null);
     setFooterInfoTopic(null);
+
+    if (tab === "catalog") {
+      setActiveTab("catalog");
+      setAuthViewOpen(false);
+      setAuthTargetTab(null);
+      return;
+    }
+
+    if ((tab === "desk" || tab === "dealroom") && !sellerAuthed) {
+      setAuthTargetTab(tab);
+      setAuthViewOpen(true);
+      return;
+    }
+
+    if (tab === "desk") {
+      if (role !== "seller") setRole("seller");
+    }
+
     setActiveTab(tab);
+    setAuthViewOpen(false);
+    setAuthTargetTab(null);
   };
 
   const addSellerProduct = async (product) => {
@@ -302,6 +329,7 @@ export default function App() {
         return { ...d, messages: [...messages, sysMsg], termSheet };
       })
     );
+    setConfettiActive(true);
     pushNotification(`Deal locked for ${deals.find((d) => d.id === dealId)?.product?.name || dealId}. Checkout link generated (24h expiry).`, { icon: Lock, tone: "brass", dealId });
 
     try {
@@ -337,9 +365,10 @@ export default function App() {
         const termSheet = { ...d.termSheet, paymentStatus: "paid", paymentMethod: method, paidAt: Date.now() };
         const label = PAYMENT_METHODS.find((m) => m.key === method)?.label || method;
         const sysMsg = { id: genId("m"), sender: "system", type: "text", text: `Payment received via ${label}.`, timestamp: Date.now() };
-        return { ...d, messages: [...d.messages, sysMsg], termSheet };
+        return { ...d, messages: [...messages, sysMsg], termSheet };
       })
     );
+    setConfettiActive(true);
     pushNotification(`Payment received for ${deals.find((d) => d.id === dealId)?.product?.name || dealId}.`, { icon: CheckCircle2, tone: "brass", dealId });
   };
 
@@ -389,26 +418,56 @@ export default function App() {
     [deals, activeDealId]
   );
 
-  // If in Seller Login view, render dedicated full-screen login without Header and Footer
-  if (!sellerAuthed) {
+  const handleLoginSuccess = (session) => {
+    const { id, email, name, role: userRole, verified, createdAt } = session.user;
+    const safeSession = {
+      token: session.token,
+      user: { id, email, name, role: userRole, verified, ...(createdAt == null ? {} : { createdAt }) },
+    };
+    localStorage.setItem(SELLER_SESSION_KEY, JSON.stringify(safeSession));
+    setSellerSession(safeSession);
+    setSellerAuthed(true);
+    setAuthViewOpen(false);
+
+    const destination = authTargetTab || "desk";
+    if (destination === "desk") {
+      setRole("seller");
+      setActiveTab("desk");
+    } else if (destination === "dealroom") {
+      setActiveTab("dealroom");
+    } else {
+      setActiveTab("catalog");
+    }
+    setAuthTargetTab(null);
+    pushNotification("Signed in successfully.", { icon: Store, tone: "brass" });
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem(SELLER_SESSION_KEY);
+    setSellerSession(null);
+    setSellerAuthed(false);
+    setRole("buyer");
+    setActiveTab("catalog");
+    setAuthViewOpen(false);
+    setAuthTargetTab(null);
+    pushNotification("Signed out of trade desk.", { icon: Store, tone: "neutral" });
+  };
+
+  // If in dedicated Auth view (opened when user clicked "My Listings", "Bargain Chats", or "Sign In")
+  if (authViewOpen) {
     return (
       <div className={`sellx-root ${theme} min-h-screen bg-[var(--ink)] text-[var(--paper)] font-body flex flex-col`}>
         <style>{GLOBAL_STYLES}</style>
         <SellerLoginPage
           theme={theme}
           setTheme={setTheme}
-          onLogin={(session) => {
-            const { id, email, name, role, verified, createdAt } = session.user;
-            const safeSession = {
-              token: session.token,
-              user: { id, email, name, role, verified, ...(createdAt == null ? {} : { createdAt }) },
-            };
-            localStorage.setItem(SELLER_SESSION_KEY, JSON.stringify(safeSession));
-            setSellerSession(safeSession);
-            setSellerAuthed(true);
-            setRole("seller");
-            pushNotification("Signed in to Seller Trade Desk.", { icon: Store, tone: "brass" });
+          onLogin={handleLoginSuccess}
+          onBack={() => {
+            setAuthViewOpen(false);
+            setAuthTargetTab(null);
+            setActiveTab("catalog");
           }}
+          titleHint={authTargetTab === "dealroom" ? "Sign in for Bargain Chats" : "Sign in to Seller Trade Desk"}
         />
         <NotificationDrawer
           open={notifOpen}
@@ -445,14 +504,12 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={goToTab}
         sellerAuthed={sellerAuthed}
-        onOpenAddItem={() => setAddItemOpen(true)}
-        onSignOut={() => {
-          localStorage.removeItem(SELLER_SESSION_KEY);
-          setSellerSession(null);
-          setSellerAuthed(false);
-          setRole("seller");
-          pushNotification("Signed out of seller trade desk.", { icon: Store, tone: "neutral" });
+        onOpenCopilot={() => setCopilotOpen(true)}
+        onOpenAuth={() => {
+          setAuthTargetTab("desk");
+          setAuthViewOpen(true);
         }}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content Area */}
@@ -474,7 +531,10 @@ export default function App() {
             allProducts={allProducts}
             onOpenProduct={(p) => setDetailProduct(p)}
             onBack={() => setDetailProduct(null)}
-            onRequestQuote={(p) => setRfqProduct(p)}
+            onRequestQuote={(p, suggestedPrice) => {
+              setRfqInitialPrice(suggestedPrice || null);
+              setRfqProduct(p);
+            }}
             onToggleCart={toggleCart}
             inCart={cartIds.has(detailProduct.id)}
             cart={cartItems}
@@ -484,10 +544,14 @@ export default function App() {
             {activeTab === "catalog" && (
               <CatalogView
                 products={allProducts}
-                onRequestQuote={(p) => setRfqProduct(p)}
+                onRequestQuote={(p, suggestedPrice) => {
+                  setRfqInitialPrice(suggestedPrice || null);
+                  setRfqProduct(p);
+                }}
                 onToggleCart={toggleCart}
                 cartItems={cartItems}
                 onOpenProduct={(p) => setDetailProduct(p)}
+                onOpenCopilot={() => setCopilotOpen(true)}
               />
             )}
 
@@ -504,6 +568,7 @@ export default function App() {
                 onQuickReject={(dealId) => requestDecline(dealId, "seller")}
                 onAddItem={() => setAddItemOpen(true)}
                 onOpenAutomationRules={(product) => setAutomationProduct(product)}
+                onOpenInvoice={(deal) => setInvoiceDeal(deal)}
               />
             )}
 
@@ -554,6 +619,7 @@ export default function App() {
                   if (targetId) openPayment(targetId);
                 }}
                 onOpenCatalog={() => goToTab("catalog")}
+                onOpenInvoice={(deal) => setInvoiceDeal(deal)}
               />
             )}
           </>
@@ -593,11 +659,38 @@ export default function App() {
         }}
       />
 
+      {/* Floating Buyer Copilot Button */}
+      {role === "buyer" && (
+        <BuyerCopilotFloatingButton onClick={() => setCopilotOpen(true)} />
+      )}
+
+      {/* Buyer Copilot Hybrid AI Modal */}
+      <BuyerCopilotModal
+        isOpen={copilotOpen}
+        onClose={() => setCopilotOpen(false)}
+        allProducts={allProducts}
+        onOpenProduct={(p) => {
+          setDetailProduct(p);
+          setCopilotOpen(false);
+        }}
+        onRequestQuote={(p, suggestedPrice) => {
+          setRfqInitialPrice(suggestedPrice || null);
+          setRfqProduct(p);
+          setCopilotOpen(false);
+        }}
+        onAddToCart={toggleCart}
+        cartIds={cartIds}
+      />
+
       {/* Modals */}
       <RFQModal
         open={!!rfqProduct}
         product={rfqProduct}
-        onClose={() => setRfqProduct(null)}
+        initialPrice={rfqInitialPrice}
+        onClose={() => {
+          setRfqProduct(null);
+          setRfqInitialPrice(null);
+        }}
         onSubmit={submitRFQ}
       />
 
@@ -636,7 +729,18 @@ export default function App() {
         deal={deals.find((d) => d.id === paymentModal.dealId)}
         onClose={() => setPaymentModal({ dealId: null })}
         onConfirmPayment={confirmPayment}
+        onOpenInvoice={(deal) => setInvoiceDeal(deal)}
       />
+
+      {invoiceDeal && (
+        <InvoiceModal
+          deal={invoiceDeal}
+          onClose={() => setInvoiceDeal(null)}
+        />
+      )}
+
+      {/* Celebration Confetti */}
+      <Confetti active={confettiActive} onComplete={() => setConfettiActive(false)} />
     </div>
   );
 }

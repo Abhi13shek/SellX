@@ -7,6 +7,8 @@ import {
   ArrowLeftRight,
   X,
   MapPin,
+  Bot,
+  ArrowRight,
   Sparkles,
   ShieldCheck,
   Tag,
@@ -26,6 +28,7 @@ export function CatalogView({
   onToggleCart,
   cartItems = [],
   cartIds: propCartIds,
+  onOpenCopilot,
 }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -82,6 +85,39 @@ export function CatalogView({
 
   return (
     <div className="space-y-4 sellx-rise">
+      {/* AI Buyer Copilot Interactive Banner */}
+      {onOpenCopilot && (
+        <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-500/10 via-[var(--surface2)] to-emerald-500/10 p-3.5 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 text-white shadow-md shadow-teal-500/20 shrink-0">
+              <Bot size={20} className="animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-extrabold text-[var(--paper)]">
+                  Can't decide? Let Buyer Copilot find your best match
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-400 border border-teal-500/30">
+                  <Sparkles size={10} />
+                  AI Powered
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-[var(--mist)] mt-0.5">
+                Give 2-3 requirements (budget, category, must-haves) and get verified recommendations with negotiation targets.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onOpenCopilot}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white text-xs font-bold shadow-md shadow-teal-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
+          >
+            <span>Ask Copilot</span>
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      )}
+
       {/* Top Search & Location Toolbar */}
       <div className="flex flex-col md:flex-row gap-3">
         {/* Search Bar */}

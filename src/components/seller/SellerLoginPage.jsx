@@ -11,6 +11,7 @@ import {
   Check,
   AlertTriangle,
   Shield,
+  ArrowLeft,
 } from "lucide-react";
 import { BrandMark } from "../common/BrandMark.jsx";
 import { Badge } from "../common/Badge.jsx";
@@ -19,7 +20,7 @@ import { PrimaryButton } from "../common/Buttons.jsx";
 import { SELLER_PERKS } from "../../data/constants.js";
 import { api } from "../../services/api.js";
 
-export function SellerLoginPage({ theme, setTheme, onLogin }) {
+export function SellerLoginPage({ theme, setTheme, onLogin, onBack, titleHint }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -119,7 +120,19 @@ export function SellerLoginPage({ theme, setTheme, onLogin }) {
       <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 bg-[var(--surface)]">
         {/* Top bar controls */}
         <div className="flex items-center justify-between w-full">
-          <BrandMark size="sm" wordmark={true} />
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[var(--mist)] hover:text-[var(--paper)] transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-[var(--surface2)]"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Marketplace</span>
+            </button>
+          ) : (
+            <BrandMark size="sm" wordmark={true} />
+          )}
+
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface2)] transition-colors"
@@ -131,15 +144,17 @@ export function SellerLoginPage({ theme, setTheme, onLogin }) {
         {/* Form Container */}
         <div className="w-full max-w-md mx-auto my-auto py-10 lg:py-0">
           <Badge tone="brass">
-            <Store size={11} /> Seller portal
+            <Store size={11} /> {titleHint || "Sign in / Register"}
           </Badge>
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--paper)] mt-3">
-            {mode === "login" ? "Sign in to your trade desk" : "Create your seller account"}
+            {mode === "login"
+              ? "Sign in to your trade desk"
+              : "Create your account"}
           </h2>
           <p className="text-sm text-[var(--mist)] mt-1.5">
             {mode === "login"
               ? "Manage inbound RFQs, negotiate live terms, and lock deals directly."
-              : "Create an account to manage RFQs and negotiate directly."}
+              : "Create an account to manage listings, bargain chats, and secure trade desks."}
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface2)] p-1" role="tablist" aria-label="Seller account mode">

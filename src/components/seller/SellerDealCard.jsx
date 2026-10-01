@@ -1,5 +1,5 @@
 import React from "react";
-import { User, CheckCircle2, Lock, XCircle, Clock, MapPin, ShieldCheck } from "lucide-react";
+import { User, CheckCircle2, Lock, XCircle, Clock, MapPin, ShieldCheck, FileCheck } from "lucide-react";
 import { CategoryIcon } from "../common/Icons.jsx";
 import { MiniStat } from "../common/MiniStat.jsx";
 import { Badge } from "../common/Badge.jsx";
@@ -7,7 +7,7 @@ import { catColor, hexToRgba, healthColor } from "../../utils/styles.js";
 import { fmtINR } from "../../utils/formatters.js";
 import { marginHealth } from "../../utils/helpers.js";
 
-export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, onQuickReject }) {
+export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, onQuickReject, onOpenInvoice }) {
   const ts = deal.termSheet;
   const health = marginHealth(ts.unitPrice, deal.product.cost, deal.targetMarginPct);
   const isOpen = ts.status === "proposed";
@@ -70,6 +70,18 @@ export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, on
           </span>
         </div>
       </button>
+
+      {isLocked && onOpenInvoice && (
+        <div className="mt-3 pt-3 border-t border-[var(--line-soft)]">
+          <button
+            onClick={() => onOpenInvoice(deal)}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold bg-[var(--surface2)] hover:bg-[var(--surface3)] border border-[var(--line)] text-emerald-600 dark:text-emerald-400 transition-colors shadow-xs"
+          >
+            <FileCheck size={13} />
+            <span>View Recommerce Invoice &amp; Contract</span>
+          </button>
+        </div>
+      )}
 
       {isOpen && (
         <div className="grid grid-cols-2 gap-1.5 mt-3 pt-3 border-t border-[var(--line-soft)]">

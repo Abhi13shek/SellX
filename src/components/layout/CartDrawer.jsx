@@ -10,13 +10,13 @@ export function CartDrawer({ open, onClose, items, onRemove, onClear, onGoToCata
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity ${
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-[var(--surface)] border-l border-[var(--line)] shadow-2xl transition-transform duration-300 flex flex-col ${
+        className={`fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-[var(--surface)] border-l border-[var(--line)] shadow-2xl transition-all duration-300 ease-out flex flex-col ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
