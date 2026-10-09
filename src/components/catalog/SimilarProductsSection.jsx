@@ -76,20 +76,20 @@ export function SimilarProductsSection({
                   Suggested Alternatives & Similar Deals
                 </h3>
                 <p className="text-xs text-[var(--mist)] mt-0.5">
-                  AI vector similarity matched with <span className="font-semibold text-[var(--paper)] truncate inline-block max-w-[220px] align-bottom">"{targetProduct.name}"</span>
+                  Matched by product type, category, brand & price to <span className="font-semibold text-[var(--paper)] truncate inline-block max-w-[220px] align-bottom">"{targetProduct.name}"</span>
                 </p>
               </div>
             </div>
           </div>
 
-          {/* AI Status & MiniLM Badge */}
+          {/* Status Badge */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shadow-xs">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span>Semantic Neural Vector Rank</span>
+              <span>Smart Relevance Rank</span>
             </div>
           </div>
         </div>

@@ -1,84 +1,76 @@
 /**
- * Semantic Similarity Engine using normalized feature vector representations
- * inspired by all-MiniLM-L6-v2 sentence-transformers architecture.
+ * Semantic Similarity Engine using explicit tiered relevance scoring.
+ * Guarantees that similar product types outrank unrelated products sharing the same brand.
  */
 
-// Cosine similarity between two dense numeric vectors
-export function cosineSimilarity(vecA, vecB) {
-  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    normA += vecA[i] * vecA[i];
-    normB += vecB[i] * vecB[i];
+// 1. Lightweight Type Inference with Safe Word-Boundary Matching
+// Defined as an array to guarantee deterministic iteration order.
+// Specific/compound types (like smartwatch) are evaluated before generic ones (like smartphone).
+const TYPE_MAPPINGS = [
+  { type: 'smartwatch', keywords: ['galaxy watch', 'apple watch', 'smartwatch', 'watch'] },
+  { type: 'handheld_gaming', keywords: ['steam deck', 'switch'] },
+  { type: 'vr', keywords: ['vr headset', 'quest', 'vr'] },
+  { type: 'smartphone', keywords: ['iphone', 'galaxy', 'oneplus', 'pixel', 'smartphone', 'phone', 'redmi', 'poco', 'realme', 'vivo', 'oppo', 'motorola', 'nord'] },
+  { type: 'tablet', keywords: ['ipad', 'tablet', 'tab'] },
+  { type: 'laptop', keywords: ['macbook', 'thinkpad', 'laptop', 'notebook', 'ideapad', 'vivobook', 'pavilion'] },
+  { type: 'monitor', keywords: ['monitor', 'display'] },
+  { type: 'keyboard', keywords: ['keyboard'] },
+  { type: 'mouse', keywords: ['mouse'] },
+  { type: 'console', keywords: ['ps5', 'ps4', 'xbox', 'playstation', 'console'] },
+  { type: 'headphones', keywords: ['headphones', 'headset', 'airpods', 'buds', 'earbuds'] },
+  { type: 'speaker', keywords: ['speaker'] },
+  { type: 'microphone', keywords: ['microphone', 'mic'] },
+  { type: 'camera', keywords: ['camera', 'dslr', 'mirrorless', 'gopro'] },
+  { type: 'printer', keywords: ['printer'] },
+  { type: 'router', keywords: ['router'] },
+  { type: 'ereader', keywords: ['kindle', 'ereader', 'e-reader'] }
+];
+
+function inferProductType(name) {
+  if (!name) return 'other';
+  const lowerName = name.toLowerCase();
+  for (const mapping of TYPE_MAPPINGS) {
+    // Use word boundaries to prevent substring mismatches (e.g. "vr" matching "chevron")
+    if (mapping.keywords.some(k => new RegExp(`\\b${k}\\b`).test(lowerName))) {
+      return mapping.type;
+    }
   }
-  if (normA === 0 || normB === 0) return 0;
-  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  return 'other';
 }
 
-// Tokenize text into lowercased semantic n-grams and tokens
-function extractTokens(text) {
-  if (!text) return [];
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((t) => t.length > 1);
-}
+// Map of closely related types within the same broad categories (Tier 2 Fallback)
+const RELATED_TYPES = {
+  smartphone: ['tablet', 'ereader'],
+  tablet: ['smartphone', 'ereader'],
+  ereader: ['tablet', 'smartphone'],
+  laptop: ['monitor', 'keyboard', 'mouse'],
+  monitor: ['laptop', 'keyboard', 'mouse'],
+  keyboard: ['mouse', 'laptop', 'monitor'],
+  mouse: ['keyboard', 'laptop', 'monitor'],
+  console: ['handheld_gaming', 'vr'],
+  handheld_gaming: ['console', 'vr'],
+  vr: ['console', 'handheld_gaming'],
+  headphones: ['speaker', 'microphone'],
+  speaker: ['headphones', 'microphone'],
+  microphone: ['headphones', 'speaker']
+};
 
-// Create a pseudo-dense semantic embedding vector for a product
-// based on Category, Brand, Specs, Condition, Keywords, and Description
-export function getProductSemanticVector(product, vocabulary) {
-  const text = [
-    product.name,
-    product.category,
-    product.condition,
-    product.supplier,
-    product.locality,
-    product.city,
-    (product.highlights || []).join(" "),
-    (product.includes || []).join(" "),
-    product.description,
-  ].join(" ");
+// 2. Lightweight Brand Inference
+const BRANDS = [
+  'apple', 'samsung', 'oneplus', 'google', 'xiaomi', 'redmi', 'realme', 'vivo', 'oppo',
+  'sony', 'lenovo', 'dell', 'hp', 'asus', 'acer', 'microsoft', 'nintendo', 'xbox', 'canon',
+  'nikon', 'jbl', 'bose', 'logitech', 'dyson', 'philips', 'lg', 'marshall', 'casio', 'yamaha'
+];
 
-  const tokens = extractTokens(text);
-  const tokenFreq = {};
-  tokens.forEach((t) => {
-    tokenFreq[t] = (tokenFreq[t] || 0) + 1;
-  });
-
-  // Project into vocabulary space
-  const vector = new Float32Array(vocabulary.length);
-  for (let i = 0; i < vocabulary.length; i++) {
-    const word = vocabulary[i];
-    let weight = tokenFreq[word] || 0;
-    
-    // Extra boost for category and title tokens
-    if (product.category && product.category.toLowerCase().includes(word)) weight *= 2.5;
-    if (product.name && product.name.toLowerCase().includes(word)) weight *= 2.0;
-
-    vector[i] = weight;
+function inferBrand(name) {
+  if (!name) return null;
+  const lowerName = name.toLowerCase();
+  for (const brand of BRANDS) {
+    if (new RegExp(`\\b${brand}\\b`).test(lowerName)) {
+      return brand;
+    }
   }
-
-  // L2-normalize
-  let sumSq = 0;
-  for (let i = 0; i < vector.length; i++) sumSq += vector[i] * vector[i];
-  const norm = Math.sqrt(sumSq) || 1;
-  for (let i = 0; i < vector.length; i++) vector[i] /= norm;
-
-  return vector;
-}
-
-// Build unified vocabulary across all catalog products
-export function buildCatalogVocabulary(products) {
-  const wordSet = new Set();
-  products.forEach((p) => {
-    const text = `${p.name} ${p.category} ${p.condition || ""} ${p.description || ""} ${(p.highlights || []).join(" ")}`;
-    extractTokens(text).forEach((t) => wordSet.add(t));
-  });
-  return Array.from(wordSet);
+  return null;
 }
 
 /**
@@ -87,27 +79,90 @@ export function buildCatalogVocabulary(products) {
 export function findSimilarProducts(targetProduct, allProducts, limit = 4) {
   if (!targetProduct || !allProducts || allProducts.length <= 1) return [];
 
+  // Always exclude the target product itself
   const otherProducts = allProducts.filter((p) => p.id !== targetProduct.id);
-  const vocabulary = buildCatalogVocabulary(allProducts);
-  const targetVector = getProductSemanticVector(targetProduct, vocabulary);
+
+  const targetType = inferProductType(targetProduct.name);
+  const targetBrand = inferBrand(targetProduct.name);
 
   const scored = otherProducts.map((p) => {
-    const candidateVector = getProductSemanticVector(p, vocabulary);
-    let similarity = cosineSimilarity(targetVector, candidateVector);
+    const candidateType = inferProductType(p.name);
+    const candidateBrand = inferBrand(p.name);
 
-    // Boost products in the exact same category
-    if (p.category === targetProduct.category) {
-      similarity = Math.min(0.98, similarity * 1.25 + 0.15);
-    } else {
-      similarity = similarity * 0.7; // Category boundary penalty
+    // --- DETERMINE TIER ---
+    let tier = 4;
+    let baseMatchPercent = 20;
+
+    // TIER 1: Same inferred product type
+    if (targetType !== 'other' && targetType === candidateType) {
+      tier = 1;
+      baseMatchPercent = 80;
+    }
+    // TIER 2: Closely related product type (within same broad category)
+    else if (
+      targetType !== 'other' &&
+      RELATED_TYPES[targetType]?.includes(candidateType) &&
+      targetProduct.category === p.category
+    ) {
+      tier = 2;
+      baseMatchPercent = 60;
+    }
+    // TIER 3: Same broad category
+    else if (targetProduct.category && targetProduct.category === p.category) {
+      tier = 3;
+      baseMatchPercent = 40;
+    }
+    // TIER 4: Broader fallback
+    else {
+      tier = 4;
+      baseMatchPercent = 20;
     }
 
-    // Baseline normalization between 65% and 98% for realistic AI scores
-    const matchPercent = Math.min(99, Math.max(55, Math.round(similarity * 100)));
+    // --- CALCULATE MODIFIERS ---
+    let modifiers = 0;
 
-    // Price differential
-    const priceDiff = p.basePrice - targetProduct.basePrice;
+    // Same Brand (only boosts within its tier, cannot jump tiers)
+    if (targetBrand && targetBrand === candidateBrand) {
+      modifiers += 15;
+    }
+
+    // Price Similarity (Max 10 points)
+    if (targetProduct.basePrice && p.basePrice) {
+      const diffRatio = Math.abs(p.basePrice - targetProduct.basePrice) / targetProduct.basePrice;
+      if (diffRatio <= 0.20) {
+        modifiers += 10;
+      } else {
+        // Linearly decay score the further away it is.
+        const decay = Math.max(0, 10 - ((diffRatio - 0.20) * 20));
+        modifiers += decay;
+      }
+    }
+
+    // Same Condition
+    if (targetProduct.condition && targetProduct.condition === p.condition) {
+      modifiers += 5;
+    }
+
+    // Same City
+    if (targetProduct.city && targetProduct.city === p.city) {
+      modifiers += 5;
+    }
+
+    // --- FINAL SCORING ---
+    // sortingScore dictates exact absolute rank (Tier 1 is 4000+, Tier 2 is 3000+, etc.)
+    const sortingScore = ((5 - tier) * 1000) + modifiers;
+
+    // Scale the 0-35 modifiers into a maximum of 19 points to prevent boundary crossover
+    // Tier 1: 80 + 0 to 19 = 80-99%
+    // Tier 2: 60 + 0 to 19 = 60-79%
+    const scaledModifiers = (modifiers / 35) * 19;
+    const matchPercent = Math.min(99, Math.round(baseMatchPercent + scaledModifiers));
+    const similarity = matchPercent / 100;
+
+    // Legacy price badge logic required by the UI
+    const priceDiff = (p.basePrice || 0) - (targetProduct.basePrice || 0);
     let priceBadge = null;
+
     if (priceDiff < -1000) {
       priceBadge = {
         type: "cheaper",
@@ -130,14 +185,15 @@ export function findSimilarProducts(targetProduct, allProducts, limit = 4) {
 
     return {
       product: p,
+      sortingScore,
       similarity,
       matchPercent,
       priceBadge,
     };
   });
 
-  // Sort by highest similarity first
-  scored.sort((a, b) => b.similarity - a.similarity);
+  // Sort strictly by the hierarchical sortingScore
+  scored.sort((a, b) => b.sortingScore - a.sortingScore);
 
   return scored.slice(0, limit);
 }

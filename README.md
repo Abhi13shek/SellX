@@ -1,4 +1,4 @@
-# ⚡ SellX — B2B Digital Trade Desk & Real-Time Negotiation Platform
+# ⚡ SellX — C2C Marketplace & Real-Time Negotiation Platform
 
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.3.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -6,38 +6,38 @@
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.3.3-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**SellX** is an enterprise-grade B2B trade desk and real-time deal room where buyers and enterprise suppliers negotiate custom prices, volume tiers, lead times, and payment terms seamlessly. Designed with margin protection, rule-based auto-negotiation, and AI copilot guidance, SellX replaces slow back-and-forth emails with an interactive, transparent trading experience.
+**SellX** is a modern consumer-to-consumer (C2C) marketplace where individual buyers and sellers can discover products, communicate, negotiate prices, and complete transactions seamlessly. Designed with direct buyer-seller offers, rule-based auto-negotiation, and AI copilot guidance, SellX replaces slow back-and-forth messaging with an interactive, transparent trading experience.
 
 ---
 
 ## 🌟 Key Features
 
-### 🏢 1. Interactive Deal Room & Live Counteroffers
-- **Structured Offer Exchange**: Submit, review, and negotiate critical terms in real time:
-  - Unit Price & Volume Discounts (INR / Custom Currencies)
-  - Lead Times & Milestone Delivery Schedules
-  - Payment Terms (Advance, Net 30/60/90, Escrow Milestones)
-  - Custom Freight & Inspection Clauses
-- **Audit-Trail Chat & Offer Cards**: Every counter-proposal is version-controlled with visual diffs and status trackers.
+### 🤝 1. Interactive Deal Room & Live Counteroffers
+- **Direct Buyer-Seller Offers**: Submit, review, and negotiate critical terms in real time:
+  - Offer Price (INR)
+  - Negotiation Notes
+  - Counteroffers
+  - Deal status/history
+- **Audit-Trail Chat & Offer Cards**: Every counteroffer is version-controlled with visual diffs and status trackers.
 - **Safety Confirmations**: Multi-step verification modals prevent accidental concessions or premature deal closures.
 
-### 📊 2. Seller Desk & Margin Protection Pipeline
-- **Live Deal Pipeline**: Track deals across negotiation stages (`Draft`, `Under Review`, `Counter Sent`, `Accepted`, `Escrow Pending`, `Settled`).
-- **Margin Safeguards**: Visual indicators alert sellers when proposals approach or breach cost floor thresholds.
-- **Bulk Product Inventory**: Manage catalog pricing, minimum order quantities (MOQs), and stock availability.
+### 📊 2. Seller Dashboard & Listings
+- **Live Deal Pipeline**: Track negotiations across stages (`Draft`, `Under Review`, `Counter Sent`, `Accepted`, `Payment Pending`, `Completed`).
+- **Active Negotiations**: Visual indicators alert sellers when proposals approach or breach their minimum acceptable price.
+- **Manage Personal Listings**: Manage product listings, update prices, and track item availability.
 
 ### 🤖 3. Smart Automation Engine & Simulator
-- **Rule-Based Auto-Negotiation**: Configure automated acceptance thresholds and counteroffer behaviors per product.
-- **Margin Protection Rules**: Reject or escalate offers below floor margins automatically.
-- **Rule Simulator**: Test proposed rules against custom test offer prices and delivery timelines before deploying live.
+- **Rule-Based Auto-Negotiation**: Configure automated acceptance thresholds and counteroffer behaviors per product listing.
+- **Minimum Acceptable Price**: Reject offers below your configured minimum price automatically.
+- **Rule Simulator**: Test proposed rules against custom test offer prices before deploying them live.
 
 ### 🧠 4. AI-Powered Negotiation Copilot
-- **Buyer Copilot**: Suggests strategic concession moves, benchmark comparisons, and optimal bundle offers.
-- **Seller Copilot**: Analyzes buyer price elasticity, recommends profit-maximizing counter-steps, and monitors inventory velocity.
+- **Buyer Copilot**: Helps compare products, provides negotiation suggestions, and suggests reasonable counteroffers.
+- **Seller Copilot**: Helps evaluate incoming offers, suggests counteroffers, and provides listing insights.
 
-### 💳 5. Payment & Settlement Workflow
-- Integrated milestone payment simulation with escrow protection.
-- Downloadable purchase orders (PO), deal summaries, and transaction confirmations.
+### 💳 5. Payment & Transaction Workflow
+- Deal confirmation and transaction summary workflow.
+- Downloadable deal summaries and transaction confirmations.
 
 ---
 
@@ -46,9 +46,9 @@
 ```mermaid
 graph TD
     subgraph Client ["Client (React 18 + Vite)"]
-        UI[Trade Desk UI & Catalog]
+        UI[Marketplace UI & Product Catalog]
         DR[Interactive Deal Room]
-        SD[Seller Pipeline & Desk]
+        SD[Seller Dashboard & Listings]
         AR[Automation Rules Modal]
         API_CLIENT[API Client Service]
     end
@@ -112,9 +112,9 @@ sellx-app/
 │   │   ├── catalog/           # Product cards, catalog grid & detail pages
 │   │   ├── dealroom/          # Live deal room, counteroffers, chat stream
 │   │   ├── layout/            # Navigation header, footer, drawers (cart, notifs)
-│   │   ├── modals/            # Acceptance, decline, payment, & RFQ modals
+│   │   ├── modals/            # Acceptance, decline, payment, & confirmation modals
 │   │   ├── pages/             # Informational pages & terms
-│   │   └── seller/            # Seller desk, pipeline boards & auth screens
+│   │   └── seller/            # Seller dashboard, pipeline boards & auth screens
 │   ├── data/                  # Static constants, product defaults, & deal stages
 │   ├── services/              # Axios / Fetch API client layer
 │   ├── utils/                 # Formatting (INR / dates), ID generators, styles
@@ -184,15 +184,15 @@ npm run build
 | `GET` | `/api/products/:id` | Get detailed product profile & pricing rules |
 | `POST` | `/api/products` | Add a new product to the catalog |
 | `PUT` | `/api/products/:id/automation` | Update automation rules for a product |
-| `POST` | `/api/products/:id/automation/simulate` | Simulate auto-negotiation outcome against a test proposal |
+| `POST` | `/api/products/:id/automation/simulate` | Simulate auto-negotiation outcome against a test offer |
 
 ### Deals & Negotiations
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/deals` | List all active deals with stage and actor metadata |
 | `GET` | `/api/deals/:id` | Retrieve full deal history, offers, and chat trail |
-| `POST` | `/api/deals` | Initiate a new deal room from an RFQ |
-| `POST` | `/api/deals/:id/counter` | Submit a counteroffer (unit price, lead time, notes) |
+| `POST` | `/api/deals` | Initiate a new deal room from an offer |
+| `POST` | `/api/deals/:id/counter` | Submit a counteroffer (price, timeline, notes) |
 | `POST` | `/api/deals/:id/accept` | Formally accept the latest active offer |
 | `POST` | `/api/deals/:id/decline` | Decline negotiation with optional reason |
 | `POST` | `/api/deals/:id/messages` | Append a message or system notification to deal room |
@@ -201,7 +201,7 @@ npm run build
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/copilot/buyer/:dealId` | Fetch strategic negotiation advice for the buyer |
-| `GET` | `/api/copilot/seller/:dealId` | Fetch margin analysis & counter recommendations for seller |
+| `GET` | `/api/copilot/seller/:dealId` | Fetch negotiation analysis & counter recommendations for seller |
 | `GET` | `/api/stats` | Overall platform metrics, GMV, and active deal count |
 
 ---
@@ -209,8 +209,8 @@ npm run build
 ## 💡 Role Switching & Demo Guide
 
 SellX includes a built-in persona toggle in the top header:
-1. **Buyer Persona**: Browse catalog items, submit customized RFQs, compare specs, and counter seller terms inside the Deal Room.
-2. **Seller Persona**: Access the Seller Desk, monitor deal pipelines, configure automated rules, review margins, and simulate rule triggers.
+1. **Buyer Persona**: Browse catalog items, search/filter products, compare items, make offers, and negotiate with sellers inside the Deal Room.
+2. **Seller Persona**: Access the Seller Dashboard, manage listings, monitor active negotiations, configure automated rules, and review incoming offers.
 
 ---
 
