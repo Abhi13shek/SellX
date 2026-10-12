@@ -2,18 +2,38 @@ const API_BASE = "/api";
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  let token = null;
+  try {
+    const session = JSON.parse(localStorage.getItem("sellx:seller-session"));
+    if (session && session.token) {
+      token = session.token;
+    }
+  } catch (err) {}
+
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const config = {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
     ...options,
+    headers,
   };
 
   try {
     const res = await fetch(url, config);
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
+      if (res.status === 401 && data?.error?.message === "Session invalid or expired") {
+        if (localStorage.getItem("sellx:seller-session")) {
+          localStorage.removeItem("sellx:seller-session");
+          window.dispatchEvent(new Event("sellx:auth-expired"));
+        }
+      }
       throw new Error(data?.error?.message || `Request failed with status ${res.status}`);
     }
     return data;
@@ -156,6 +176,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+    return res.data;
+  },
+
+  async logout() {
+    const res = await request("/auth/logout", { method: "POST" });
     return res.data;
   },
 };

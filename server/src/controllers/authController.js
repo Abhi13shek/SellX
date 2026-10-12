@@ -2,6 +2,7 @@ import { promisify } from "node:util";
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { db } from "../config/database.js";
 import { UserModel } from "../models/UserModel.js";
+import { SessionModel } from "../models/SessionModel.js";
 
 const scryptAsync = promisify(scrypt);
 const SCRYPT_COST = 16384;
@@ -60,10 +61,15 @@ async function verifyPassword(password, passwordHash) {
 }
 
 function createSession(user) {
-  return {
-    user: UserModel.toSafeUser(user),
-    token: randomBytes(32).toString("base64url"),
-  };
+  try {
+    const rawToken = SessionModel.create(user.id);
+    return {
+      user: UserModel.toSafeUser(user),
+      token: rawToken,
+    };
+  } catch (error) {
+    throw new Error("Session persistence failed.");
+  }
 }
 
 function sendError(res, statusCode, message) {
@@ -124,8 +130,20 @@ export const authController = {
     }
   },
 
-  getCurrentUser(req, res) {
-    const defaultUser = UserModel.findByEmail("seller@sellx.trade");
-    res.json({ success: true, data: UserModel.toSafeUser(defaultUser) });
+  getCurrentUser(req, res, next) {
+    try {
+      res.json({ success: true, data: UserModel.toSafeUser(req.user) });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  logout(req, res, next) {
+    try {
+      SessionModel.revoke(req.token);
+      res.json({ success: true, data: null });
+    } catch (err) {
+      next(err);
+    }
   },
 };

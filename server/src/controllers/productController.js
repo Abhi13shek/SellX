@@ -39,13 +39,14 @@ export const productController = {
 
   createProduct(req, res, next) {
     try {
-      const { name, basePrice, category, description, supplier, leadTimeDays, highlights, image, sku, cost, automationRules } = req.body;
+      const { name, basePrice, category, description, leadTimeDays, highlights, image, sku, cost, automationRules } = req.body;
       const product = ProductModel.create({
+        userId: req.user.id,
         name,
         basePrice,
         category,
         description,
-        supplier,
+        supplier: req.user.name,
         leadTimeDays,
         highlights,
         image,
@@ -76,6 +77,9 @@ export const productController = {
       if (!product) {
         return res.status(404).json({ success: false, error: { message: "Product not found", statusCode: 404 } });
       }
+      if (product.userId !== req.user.id) {
+        return res.status(403).json({ success: false, error: { message: "Forbidden", statusCode: 403 } });
+      }
 
       const updated = ProductModel.update(id, { automationRules });
       res.json({ success: true, data: updated });
@@ -91,6 +95,9 @@ export const productController = {
       const product = ProductModel.findById(id);
       if (!product) {
         return res.status(404).json({ success: false, error: { message: "Product not found", statusCode: 404 } });
+      }
+      if (product.userId !== req.user.id) {
+        return res.status(403).json({ success: false, error: { message: "Forbidden", statusCode: 403 } });
       }
 
       const result = negotiationService.evaluateAutomationRules(product, Number(testOfferPrice), Number(testLeadTimeDays || 3));
@@ -112,6 +119,13 @@ export const productController = {
   deleteProduct(req, res, next) {
     try {
       const { id } = req.params;
+      const product = ProductModel.findById(id);
+      if (!product) {
+        return res.status(404).json({ success: false, error: { message: "Product not found", statusCode: 404 } });
+      }
+      if (product.userId !== req.user.id) {
+        return res.status(403).json({ success: false, error: { message: "Forbidden", statusCode: 403 } });
+      }
       const deleted = ProductModel.delete(id);
       if (!deleted) {
         return res.status(404).json({ success: false, error: { message: "Product not found", statusCode: 404 } });

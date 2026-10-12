@@ -23,7 +23,7 @@ export const DealModel = {
     return db.data.deals.find((d) => d.id === id) || null;
   },
 
-  create({ product, buyerName = "You (Buyer)", initialOffer = null }) {
+  create({ product, buyerName = "You (Buyer)", buyerId = null, sellerId = null, initialOffer = null }) {
     const now = Date.now();
     const dealId = `D-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -71,6 +71,8 @@ export const DealModel = {
       id: dealId,
       productId: product.id,
       product,
+      buyerId,
+      sellerId,
       buyerName,
       sellerName: product.supplier || "Verified Owner",
       targetMarginPct: 0.22,

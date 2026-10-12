@@ -50,6 +50,7 @@ export const ProductModel = {
 
     const newProduct = {
       id: productData.id || `P-${genId("item")}`,
+      userId: productData.userId || null,
       sku: productData.sku || `USED-${productData.name.slice(0, 3).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`,
       name: productData.name,
       category: productData.category || "Mobile",

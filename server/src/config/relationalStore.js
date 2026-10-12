@@ -16,6 +16,7 @@ const TERM_FIELDS = [
   "declinedAt", "declineReason", "handoverOtp",
 ];
 const MESSAGE_FIELDS = ["id", "sender", "type", "text", "offer", "timestamp"];
+const SESSION_FIELDS = ["id", "userId", "tokenHash", "expiresAt", "createdAt"];
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -252,6 +253,16 @@ function notificationRow(notification, position) {
   };
 }
 
+function sessionRow(session, position) {
+  return {
+    id: session.id,
+    user_id: session.userId,
+    token_hash: session.tokenHash,
+    expires_at: session.expiresAt,
+    created_at: session.createdAt,
+  };
+}
+
 export async function ensureRelationalSchema(pool) {
   for (const statement of SCHEMA) await pool.query(statement);
 }
@@ -292,6 +303,9 @@ export async function migrateState(pool, state) {
     for (const [position, notification] of (state.notifications || []).entries()) {
       await insertMissing(connection, "notifications", notificationRow(notification, position));
     }
+    for (const [position, session] of (state.sessions || []).entries()) {
+      await insertMissing(connection, "sessions", sessionRow(session, position));
+    }
     await connection.commit();
   } catch (error) {
     await connection.rollback();
@@ -304,13 +318,14 @@ export async function migrateState(pool, state) {
 const asNumber = (value) => value == null ? value : Number(value);
 
 export async function loadRelationalState(pool) {
-  const [users, products, deals, terms, messages, notifications] = await Promise.all([
+  const [users, products, deals, terms, messages, notifications, sessions] = await Promise.all([
     pool.query("SELECT * FROM users ORDER BY sort_order, id"),
     pool.query("SELECT * FROM products ORDER BY sort_order, id"),
     pool.query("SELECT * FROM deals ORDER BY sort_order, id"),
     pool.query("SELECT * FROM deal_terms"),
     pool.query("SELECT * FROM deal_messages ORDER BY deal_id, position, id"),
     pool.query("SELECT * FROM notifications ORDER BY position, id"),
+    pool.query("SELECT * FROM sessions ORDER BY created_at DESC"),
   ]).then((results) => results.map(([rows]) => rows));
 
   const termsByDeal = new Map(terms.map((row) => [row.deal_id, {
@@ -396,6 +411,13 @@ export async function loadRelationalState(pool) {
       messages: messagesByDeal.get(row.id) || [],
     })),
     notifications: notifications.map((row) => parseJson(row.payload_json, {})),
+    sessions: sessions.map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      tokenHash: row.token_hash,
+      expiresAt: asNumber(row.expires_at),
+      createdAt: asNumber(row.created_at),
+    })),
   };
 }
 
@@ -447,6 +469,9 @@ export async function persistRelationalChanges(pool, previous, current) {
     }));
     await persistCollection(connection, "notifications", "id", oldNotifications, newNotifications,
       (notification, position) => notificationRow(notification, position));
+
+    await persistCollection(connection, "sessions", "id", previous.sessions || [], current.sessions || [], sessionRow);
+
     await connection.commit();
   } catch (error) {
     await connection.rollback();

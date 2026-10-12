@@ -7,6 +7,11 @@ export const UserModel = {
     return db.data.users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase()) || null;
   },
 
+  findById(id) {
+    if (!id) return null;
+    return db.data.users.find((u) => u.id === id) || null;
+  },
+
   create({ email, name, role = "seller", passwordHash }) {
     const normalizedEmail = email.trim().toLowerCase();
     if (this.findByEmail(normalizedEmail)) return null;

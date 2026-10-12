@@ -11,6 +11,10 @@ export const copilotController = {
         return res.status(404).json({ success: false, error: { message: "Deal not found", statusCode: 404 } });
       }
 
+      if (req.user.id !== deal.buyerId && req.user.id !== deal.sellerId) {
+        return res.status(403).json({ success: false, error: { message: "Forbidden", statusCode: 403 } });
+      }
+
       const insights = aiEngineService.getBuyerInsights(deal);
       res.json({ success: true, data: insights });
     } catch (err) {
@@ -24,6 +28,10 @@ export const copilotController = {
       const deal = DealModel.findById(dealId);
       if (!deal) {
         return res.status(404).json({ success: false, error: { message: "Deal not found", statusCode: 404 } });
+      }
+
+      if (req.user.id !== deal.sellerId) {
+        return res.status(403).json({ success: false, error: { message: "Forbidden", statusCode: 403 } });
       }
 
       const insights = aiEngineService.getSellerInsights(deal);

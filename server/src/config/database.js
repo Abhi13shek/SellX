@@ -19,6 +19,7 @@ class Database {
     this.data = {
       products: [],
       deals: [],
+      sessions: [],
       users: [
         {
           id: "usr-seller-01",
@@ -162,6 +163,7 @@ class Database {
     return {
       products: Array.isArray(state.products) ? state.products : [],
       deals: Array.isArray(state.deals) ? state.deals : [],
+      sessions: Array.isArray(state.sessions) ? state.sessions : [],
       users: Array.isArray(state.users) ? state.users : this.data.users,
       notifications: Array.isArray(state.notifications) ? state.notifications : [],
     };
@@ -172,7 +174,7 @@ class Database {
   }
 
   isEmpty(state) {
-    return ["users", "products", "deals", "notifications"]
+    return ["users", "products", "deals", "notifications", "sessions"]
       .every((key) => state[key].length === 0);
   }
 }

@@ -66,6 +66,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("catalog");
   const [authViewOpen, setAuthViewOpen] = useState(false);
   const [authTargetTab, setAuthTargetTab] = useState(null);
+  const [rfqDraft, setRfqDraft] = useState(null);
   const [deals, setDeals] = useState(INITIAL_DEALS);
   const [activeDealId, setActiveDealId] = useState(null);
   const [automationProduct, setAutomationProduct] = useState(null);
@@ -137,6 +138,15 @@ export default function App() {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [invoiceDeal, copilotOpen, rfqProduct, addItemOpen, detailProduct, acceptModal.dealId, declineModal.dealId, paymentModal.dealId, cartOpen, notifOpen]);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      handleSignOut();
+      pushNotification("Your session expired. Please sign in again.", { icon: Store, tone: "neutral" });
+    };
+    window.addEventListener("sellx:auth-expired", handleAuthExpired);
+    return () => window.removeEventListener("sellx:auth-expired", handleAuthExpired);
+  }, []);
 
   const pushNotification = (text, { icon = Info, tone = "teal", dealId } = {}) => {
     setNotifications((prev) => [{ id: genId("n"), text, icon, tone, dealId }, ...prev].slice(0, 30));
@@ -212,46 +222,58 @@ export default function App() {
   /* ---- actions ---- */
 
   const submitRFQ = async ({ product, targetPrice, leadTime, notes }) => {
-    const id = `D-${1000 + deals.length + 1}`;
-    const offerMsg = {
-      id: genId("m"),
-      sender: "buyer",
-      type: "offer",
-      timestamp: Date.now(),
-      offer: { unitPrice: targetPrice, leadTimeDays: leadTime, status: "proposed", previousUnitPrice: null },
-    };
-    const sysMsg = { id: genId("m"), sender: "system", type: "text", text: "Offer submitted by buyer.", timestamp: Date.now() - 1000 };
-    const messages = notes
-      ? [sysMsg, offerMsg, { id: genId("m"), sender: "buyer", type: "text", text: notes, timestamp: Date.now() + 1000 }]
-      : [sysMsg, offerMsg];
+    const draft = { product, targetPrice, leadTime, notes };
+    if (!sellerAuthed) {
+      setRfqDraft(draft);
+      setAuthTargetTab("rfq-resume");
+      setAuthViewOpen(true);
+      setRfqProduct(null); // Hide the modal while authenticating
+      return;
+    }
+    await processRFQ(draft);
+  };
 
-    const deal = {
-      id,
-      product,
-      productId: product.id,
-      buyerName: "You (Buyer)",
-      sellerName: product.supplier,
-      targetMarginPct: 0.22,
-      messages,
-      termSheet: { unitPrice: targetPrice, leadTimeDays: leadTime, status: "proposed", expiresAt: Date.now() + 2 * 3600000, lastProposedBy: "buyer" },
-      createdAt: Date.now(),
-    };
+  const isSubmittingRfq = React.useRef(false);
 
-    setDeals((prev) => [deal, ...prev]);
-    setRfqProduct(null);
-    setActiveDealId(id);
-    setActiveTab("dealroom");
-    pushNotification(`Offer submitted to ${product.supplier} for ${product.name}.`, { icon: Send, tone: "teal", dealId: id });
+  const processRFQ = async (draft) => {
+    if (isSubmittingRfq.current) return;
+    isSubmittingRfq.current = true;
+
+    const previousDealId = activeDealId;
+    const { product, targetPrice, leadTime, notes } = draft;
 
     try {
-      await api.createDeal({
+      const serverDeal = await api.createDeal({
         productId: product.id,
         product,
         buyerName: "You (Buyer)",
         initialOffer: { unitPrice: targetPrice, leadTimeDays: leadTime, note: notes },
       });
+
+      // Use the canonical deal returned by the server with its canonical ID
+      const canonicalDeal = {
+        ...serverDeal,
+        product: serverDeal?.product || product,
+      };
+
+      setDeals((prev) => [canonicalDeal, ...prev.filter((d) => d.id !== canonicalDeal.id)]);
+      setRfqProduct(null);
+      setRfqInitialPrice(null);
+      setRfqDraft(null);
+      setActiveDealId(canonicalDeal.id);
+      setActiveTab("dealroom");
+      pushNotification(`Offer submitted to ${canonicalDeal.sellerName || product.supplier} for ${product.name}.`, { icon: Send, tone: "teal", dealId: canonicalDeal.id });
     } catch (e) {
-      console.warn("Backend sync notice:", e);
+      console.warn("Backend deal creation error:", e);
+      pushNotification(e.message || "Failed to submit offer to server. Draft preserved.", { tone: "rose" });
+      // On failure, keep user on catalog, restore previous activeDealId or null, and keep RFQ draft and modal open for retry
+      setActiveTab("catalog");
+      setActiveDealId(previousDealId || null);
+      setRfqDraft(draft);
+      setRfqProduct(product);
+      setRfqInitialPrice(targetPrice);
+    } finally {
+      isSubmittingRfq.current = false;
     }
   };
 
@@ -430,27 +452,41 @@ export default function App() {
     setAuthViewOpen(false);
 
     const destination = authTargetTab || "desk";
+    setAuthTargetTab(null);
+
     if (destination === "desk") {
       setRole("seller");
       setActiveTab("desk");
     } else if (destination === "dealroom") {
       setActiveTab("dealroom");
+    } else if (destination === "rfq-resume") {
+      setRole("buyer"); // Make sure they are in buyer mode
+      if (rfqDraft) {
+        processRFQ(rfqDraft);
+      } else {
+        setActiveTab("catalog");
+      }
     } else {
       setActiveTab("catalog");
     }
-    setAuthTargetTab(null);
     pushNotification("Signed in successfully.", { icon: Store, tone: "brass" });
   };
 
-  const handleSignOut = () => {
-    localStorage.removeItem(SELLER_SESSION_KEY);
-    setSellerSession(null);
-    setSellerAuthed(false);
-    setRole("buyer");
-    setActiveTab("catalog");
-    setAuthViewOpen(false);
-    setAuthTargetTab(null);
-    pushNotification("Signed out of trade desk.", { icon: Store, tone: "neutral" });
+  const handleSignOut = async () => {
+    try {
+      if (sellerSession) await api.logout();
+    } catch (e) {
+      console.warn("Server logout failed, but local session will be cleared.", e);
+    } finally {
+      localStorage.removeItem(SELLER_SESSION_KEY);
+      setSellerSession(null);
+      setSellerAuthed(false);
+      setRole("buyer");
+      setActiveTab("catalog");
+      setAuthViewOpen(false);
+      setAuthTargetTab(null);
+      pushNotification("Signed out of trade desk.", { icon: Store, tone: "neutral" });
+    }
   };
 
   // If in dedicated Auth view (opened when user clicked "My Listings", "Bargain Chats", or "Sign In")
@@ -464,10 +500,14 @@ export default function App() {
           onLogin={handleLoginSuccess}
           onBack={() => {
             setAuthViewOpen(false);
+            if (authTargetTab === "rfq-resume" && rfqDraft) {
+              setRfqProduct(rfqDraft.product);
+              setRfqInitialPrice(rfqDraft.targetPrice);
+            }
             setAuthTargetTab(null);
             setActiveTab("catalog");
           }}
-          titleHint={authTargetTab === "dealroom" ? "Sign in for Bargain Chats" : "Sign in to Seller Trade Desk"}
+          titleHint={authTargetTab === "rfq-resume" ? "Sign in to send offer" : authTargetTab === "dealroom" ? "Sign in for Bargain Chats" : "Sign in to Seller Trade Desk"}
         />
         <NotificationDrawer
           open={notifOpen}
