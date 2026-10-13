@@ -13,7 +13,10 @@ import {
   ShieldCheck,
   Tag,
   Clock,
+  Loader2,
+  LocateFixed,
 } from "lucide-react";
+import { useUserLocation, GEO_STATUS } from "../../hooks/useUserLocation.js";
 import { ProductImageTile } from "../common/ProductImageTile.jsx";
 import { CategoryBadge, Badge } from "../common/Badge.jsx";
 import { ScrollRevealCard } from "../common/ScrollRevealCard.jsx";
@@ -35,6 +38,8 @@ export function CatalogView({
   const [activeCity, setActiveCity] = useState("All India");
   const [activeCondition, setActiveCondition] = useState("All");
   const [sortBy, setSortBy] = useState("default");
+
+  const { status: geoStatus, errorMessage: geoError, requestLocation } = useUserLocation();
 
   const categories = useMemo(() => {
     const set = new Set(products.map((p) => p.category));
@@ -140,7 +145,7 @@ export function CatalogView({
           )}
         </div>
 
-        {/* City Filter Pills Dropdown */}
+        {/* City Filter Dropdown */}
         <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-xs font-medium text-[var(--mist)] shadow-sm">
           <MapPin size={14} className="text-rose-500 shrink-0" />
           <span className="hidden sm:inline">City:</span>
@@ -148,6 +153,7 @@ export function CatalogView({
             value={activeCity}
             onChange={(e) => setActiveCity(e.target.value)}
             className="bg-transparent text-[var(--paper)] outline-none cursor-pointer font-semibold"
+            aria-label="Filter by city"
           >
             {CITIES.map((c) => (
               <option key={c} value={c} className="bg-[var(--surface)] text-[var(--paper)]">
@@ -157,6 +163,45 @@ export function CatalogView({
           </select>
         </div>
 
+        {/* Use My Location button */}
+        <button
+          id="use-my-location-btn"
+          type="button"
+          onClick={requestLocation}
+          disabled={geoStatus === GEO_STATUS.REQUESTING}
+          aria-label={
+            geoStatus === GEO_STATUS.REQUESTING
+              ? "Detecting your location…"
+              : "Use my current location"
+          }
+          title="Use My Location — detects your device location in the browser only"
+          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            geoStatus === GEO_STATUS.SUCCESS
+              ? "bg-[var(--teal)]/10 border-[var(--teal)]/50 text-[var(--teal)]"
+              : geoStatus === GEO_STATUS.ERROR
+              ? "bg-rose-500/10 border-rose-500/40 text-rose-400 hover:bg-rose-500/15"
+              : geoStatus === GEO_STATUS.REQUESTING
+              ? "bg-[var(--surface)] border-[var(--line)] text-[var(--mist)] opacity-70 cursor-not-allowed"
+              : "bg-[var(--surface)] border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:border-[var(--teal)]/40"
+          }`}
+        >
+          {geoStatus === GEO_STATUS.REQUESTING ? (
+            <Loader2 size={13} className="animate-spin shrink-0" aria-hidden="true" />
+          ) : (
+            <LocateFixed size={13} className="shrink-0" aria-hidden="true" />
+          )}
+          <span className="hidden sm:inline">
+            {geoStatus === GEO_STATUS.SUCCESS
+              ? "Location detected"
+              : geoStatus === GEO_STATUS.REQUESTING
+              ? "Detecting…"
+              : "Use My Location"}
+          </span>
+          <span className="sm:hidden">
+            {geoStatus === GEO_STATUS.SUCCESS ? "Located" : "Locate"}
+          </span>
+        </button>
+
         {/* Sort Selector */}
         <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-xs font-medium text-[var(--mist)] shadow-sm shrink-0">
           <SlidersHorizontal size={14} className="text-[var(--mist)] shrink-0" />
@@ -165,6 +210,7 @@ export function CatalogView({
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-transparent text-[var(--paper)] outline-none cursor-pointer font-semibold"
+            aria-label="Sort listings"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id} className="bg-[var(--surface)] text-[var(--paper)]">
@@ -174,6 +220,37 @@ export function CatalogView({
           </select>
         </div>
       </div>
+
+      {/* Geolocation status/error bar — only visible when relevant */}
+      {(geoStatus === GEO_STATUS.SUCCESS || geoStatus === GEO_STATUS.ERROR) && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium border ${
+            geoStatus === GEO_STATUS.SUCCESS
+              ? "bg-[var(--teal)]/8 border-[var(--teal)]/30 text-[var(--teal)]"
+              : "bg-rose-500/8 border-rose-500/25 text-rose-400"
+          }`}
+        >
+          {geoStatus === GEO_STATUS.SUCCESS ? (
+            <>
+              <LocateFixed size={13} className="shrink-0" aria-hidden="true" />
+              <span>
+                <strong>Location detected.</strong> Use the City selector or Sort by
+                &ldquo;Nearest Distance&rdquo; to browse listings.{" "}
+                <em className="opacity-70 font-normal">
+                  Actual proximity filtering requires a future update.
+                </em>
+              </span>
+            </>
+          ) : (
+            <>
+              <MapPin size={13} className="shrink-0" aria-hidden="true" />
+              <span>{geoError} Select a city above to filter manually.</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Category & Condition Filter Row */}
       <div className="flex flex-col gap-2 pt-1">
