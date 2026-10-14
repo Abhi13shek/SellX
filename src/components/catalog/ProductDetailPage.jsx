@@ -245,25 +245,30 @@ export function ProductDetailPage({
             </div>
           </div>
 
-          {/* Action CTAs */}
-          <div className="flex items-center gap-3 pt-2">
-            <PrimaryButton
-              icon={ArrowLeftRight}
-              tone="teal"
-              onClick={() => onRequestQuote(product)}
-              className="flex-1 py-3 text-sm font-bold shadow-md active:scale-98"
-            >
-              Make an Offer / Bargain
-            </PrimaryButton>
-
-            <GhostButton
-              icon={inCart ? Check : ShoppingCart}
-              onClick={() => onToggleCart(product)}
-              className="py-3 px-4 font-semibold"
-              tone={inCart ? "success" : "default"}
-            >
-              {inCart ? "Saved" : "Save Item"}
-            </GhostButton>
+          {/* The two primary choices are grouped, explained, and easy to reach on mobile. */}
+          <div className="rounded-2xl border border-[var(--teal)]/25 bg-[var(--teal)]/5 p-3.5 sm:p-4">
+            <div className="mb-3">
+              <h3 className="text-sm font-bold text-[var(--paper)]">Interested in this item?</h3>
+              <p className="mt-0.5 text-xs text-[var(--mist)]">Make an offer to negotiate, or save it to compare later.</p>
+            </div>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <GhostButton
+                icon={inCart ? Check : ShoppingCart}
+                onClick={() => onToggleCart(product)}
+                className="w-full py-3 font-semibold sm:w-auto sm:px-4"
+                tone={inCart ? "success" : "default"}
+              >
+                {inCart ? "Saved to cart" : "Save item"}
+              </GhostButton>
+              <PrimaryButton
+                icon={ArrowLeftRight}
+                tone="teal"
+                onClick={() => onRequestQuote(product)}
+                className="w-full flex-1 py-3 text-sm font-bold shadow-md active:scale-98"
+              >
+                Make an offer
+              </PrimaryButton>
+            </div>
           </div>
         </div>
       </div>

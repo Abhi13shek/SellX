@@ -1,4 +1,4 @@
-const USER_FIELDS = ["id", "email", "name", "role", "verified", "createdAt"];
+const USER_FIELDS = ["id", "email", "name", "role", "verified", "createdAt", "passwordHash"];
 const PRODUCT_FIELDS = [
   "id", "sku", "name", "category", "image", "basePrice", "cost",
   "minAcceptablePrice", "condition", "city", "locality", "distanceKm",
@@ -25,6 +25,7 @@ const SCHEMA = [
     role VARCHAR(64) NOT NULL,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at BIGINT NULL,
+    password_hash VARCHAR(255) NULL,
     extra_json JSON NULL,
     sort_order INT NOT NULL DEFAULT 0
   ) ENGINE=InnoDB`,
@@ -105,6 +106,15 @@ const SCHEMA = [
     position INT NOT NULL DEFAULT 0,
     payload_json JSON NOT NULL
   ) ENGINE=InnoDB`,
+  `CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    code_hash CHAR(64) NOT NULL,
+    expires_at BIGINT NOT NULL,
+    used_at BIGINT NULL,
+    created_at BIGINT NOT NULL,
+    INDEX idx_password_reset_tokens_lookup (user_id, used_at, expires_at)
+  ) ENGINE=InnoDB`,
 ];
 
 const jsonString = (value) => value == null ? null : JSON.stringify(value);
@@ -157,6 +167,7 @@ function userRow(user, position) {
     role: user.role || "seller",
     verified: !!user.verified,
     created_at: user.createdAt ?? null,
+    password_hash: user.passwordHash ?? null,
     extra_json: jsonString(extras(user, USER_FIELDS)),
     sort_order: position,
   };
@@ -254,6 +265,22 @@ function notificationRow(notification, position) {
 
 export async function ensureRelationalSchema(pool) {
   for (const statement of SCHEMA) await pool.query(statement);
+  // Existing databases stored hashes in extra_json. Preserve those accounts while
+  // moving the credential into a dedicated non-JSON column.
+  const [passwordHashColumn] = await pool.execute(
+    `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'password_hash'`
+  );
+  if (passwordHashColumn.length === 0) {
+    await pool.query("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) NULL");
+  }
+  await pool.query(`
+    UPDATE users
+    SET password_hash = JSON_UNQUOTE(JSON_EXTRACT(extra_json, '$.passwordHash')),
+        extra_json = JSON_REMOVE(extra_json, '$.passwordHash')
+    WHERE password_hash IS NULL
+      AND JSON_EXTRACT(extra_json, '$.passwordHash') IS NOT NULL
+  `);
 }
 
 export async function readBackupState(pool) {
@@ -352,6 +379,7 @@ export async function loadRelationalState(pool) {
       name: row.name,
       role: row.role,
       verified: !!row.verified,
+      passwordHash: row.password_hash,
       ...(row.created_at == null ? {} : { createdAt: asNumber(row.created_at) }),
     })),
     products: products.map((row) => ({

@@ -150,4 +150,20 @@ export const api = {
     });
     return res.data;
   },
+
+  async requestPasswordReset({ email }) {
+    const res = await request("/auth/password-reset/request", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    return res.data;
+  },
+
+  async resetPassword({ email, code, password }) {
+    const res = await request("/auth/password-reset/confirm", {
+      method: "POST",
+      body: JSON.stringify({ email, code, password }),
+    });
+    return res.data;
+  },
 };

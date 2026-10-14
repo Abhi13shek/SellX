@@ -1,6 +1,7 @@
 import { promisify } from "node:util";
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomInt, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
 import { db } from "../config/database.js";
+import { ENV } from "../config/env.js";
 import { UserModel } from "../models/UserModel.js";
 
 const scryptAsync = promisify(scrypt);
@@ -11,6 +12,7 @@ const HASH_LENGTH = 64;
 const SALT_LENGTH = 16;
 const MAX_MEMORY = 64 * 1024 * 1024;
 const INVALID_CREDENTIALS = "Invalid email or password.";
+const RESET_CODE_LIFETIME_MS = 15 * 60 * 1000;
 
 function isValidEmail(email) {
   return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -73,6 +75,16 @@ function sendError(res, statusCode, message) {
   });
 }
 
+function hashResetCode(code) {
+  return createHash("sha256").update(code).digest("hex");
+}
+
+function codesMatch(expectedHash, code) {
+  const expected = Buffer.from(expectedHash || "", "hex");
+  const actual = Buffer.from(hashResetCode(code), "hex");
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
 export const authController = {
   async register(req, res, next) {
     try {
@@ -119,6 +131,72 @@ export const authController = {
       }
 
       res.json({ success: true, data: createSession(user) });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async requestPasswordReset(req, res, next) {
+    try {
+      const { email } = req.body;
+      const response = {
+        success: true,
+        data: { message: "If an account exists for that email, a reset code has been created." },
+      };
+      if (!isValidEmail(email) || !db.pool) return res.json(response);
+
+      const user = UserModel.findByEmail(email);
+      if (!user) return res.json(response);
+
+      const now = Date.now();
+      const code = String(randomInt(100000, 1000000));
+      await db.pool.execute(
+        "UPDATE password_reset_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL",
+        [now, user.id]
+      );
+      await db.pool.execute(
+        "INSERT INTO password_reset_tokens (id, user_id, code_hash, expires_at, used_at, created_at) VALUES (?, ?, ?, ?, NULL, ?)",
+        [randomUUID(), user.id, hashResetCode(code), now + RESET_CODE_LIFETIME_MS, now]
+      );
+
+      // Local development has no mail service. Make the generated code available
+      // only outside production so the flow is testable without weakening deploys.
+      if (ENV.NODE_ENV !== "production") response.data.resetCode = code;
+      return res.json(response);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async resetPassword(req, res, next) {
+    try {
+      const { email, code, password } = req.body;
+      if (!isValidEmail(email) || !/^\d{6}$/.test(String(code || ""))) {
+        return sendError(res, 400, "Enter a valid email address and 6-digit reset code.");
+      }
+      if (typeof password !== "string" || password.length < 8) {
+        return sendError(res, 400, "Password must be at least 8 characters.");
+      }
+      if (!db.pool) return sendError(res, 503, "Password reset is unavailable while the database is offline.");
+
+      const user = UserModel.findByEmail(email);
+      if (!user) return sendError(res, 400, "The reset code is invalid or has expired.");
+
+      const [tokens] = await db.pool.execute(
+        `SELECT id, code_hash FROM password_reset_tokens
+         WHERE user_id = ? AND used_at IS NULL AND expires_at > ?
+         ORDER BY created_at DESC LIMIT 1`,
+        [user.id, Date.now()]
+      );
+      const token = tokens[0];
+      if (!token || !codesMatch(token.code_hash, String(code))) {
+        return sendError(res, 400, "The reset code is invalid or has expired.");
+      }
+
+      const updatedUser = UserModel.updatePasswordHash(user.id, await hashPassword(password));
+      await db.flush();
+      await db.pool.execute("UPDATE password_reset_tokens SET used_at = ? WHERE id = ?", [Date.now(), token.id]);
+      res.json({ success: true, data: { message: "Password updated. You can now sign in.", user: UserModel.toSafeUser(updatedUser) } });
     } catch (err) {
       next(err);
     }

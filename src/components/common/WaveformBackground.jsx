@@ -5,7 +5,26 @@ export function WaveformBackground() {
     <div
       className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0"
       aria-hidden="true"
+      style={{
+        background:
+          "radial-gradient(circle at 82% 42%, rgba(167, 227, 190, 0.32) 0%, rgba(167, 227, 190, 0.1) 17%, transparent 34%), radial-gradient(circle at 18% 80%, rgba(189, 232, 203, 0.18) 0%, transparent 28%)",
+      }}
     >
+      {/* Calm workspace photography adds warmth to open desktop canvas areas. */}
+      <div
+        className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat opacity-[0.22] lg:block dark:opacity-[0.13]"
+        style={{ backgroundImage: "url('/images/marketplace-workspace-background.png')" }}
+      />
+      <div className="absolute inset-0 hidden bg-gradient-to-r from-[var(--ink)]/80 via-[var(--ink)]/58 to-[var(--ink)]/30 lg:block" />
+
+      {/* Quiet marketplace canvas — gives sparse product grids a deliberate sense of depth. */}
+      <div className="absolute hidden xl:block right-[9%] top-[31%] h-[360px] w-[360px] rounded-full border border-emerald-200/55 bg-white/20 shadow-[0_20px_80px_rgba(16,185,129,0.08)]" />
+      <div className="absolute hidden xl:block right-[13%] top-[35%] h-[280px] w-[280px] rounded-full border border-emerald-200/50" />
+      <div className="absolute hidden xl:block right-[17%] top-[39%] h-[200px] w-[200px] rounded-full border border-emerald-200/45 bg-emerald-100/20" />
+      <div className="absolute hidden xl:block right-[24%] top-[46%] h-14 w-14 rotate-45 rounded-2xl border border-emerald-300/60 bg-white/45 shadow-sm" />
+      <div className="absolute hidden xl:block right-[19%] top-[39%] h-3 w-3 rounded-full bg-emerald-300/80 shadow-[0_0_18px_rgba(16,185,129,0.45)]" />
+      <div className="absolute hidden xl:block right-[35%] top-[58%] h-2.5 w-2.5 rounded-full bg-amber-200/85" />
+
       {/* Ambient Top Soundwave / Harmonic Ribbons */}
       <div className="absolute -top-10 left-0 right-0 h-96 opacity-25 dark:opacity-35 overflow-hidden">
         <svg

@@ -25,6 +25,14 @@ export const UserModel = {
     return newUser;
   },
 
+  updatePasswordHash(userId, passwordHash) {
+    const user = db.data.users.find((candidate) => candidate.id === userId);
+    if (!user) return null;
+    user.passwordHash = passwordHash;
+    db.saveSync();
+    return user;
+  },
+
   toSafeUser(user) {
     if (!user) return null;
     const { id, email, name, role, verified, createdAt } = user;

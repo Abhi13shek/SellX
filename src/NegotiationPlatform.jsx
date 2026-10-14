@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Info,
   PackagePlus,
@@ -38,11 +38,14 @@ import { PaymentModal } from "./components/modals/PaymentModal.jsx";
 import { AutomationRulesModal } from "./components/modals/AutomationRulesModal.jsx";
 import { FooterInfoPage } from "./components/pages/FooterInfoPage.jsx";
 
-const SELLER_SESSION_KEY = "sellx:seller-session";
+const ACCOUNT_SESSION_KEY = "sellx:account-session";
+const PAGE_STATE_KEY = "sellx:page-state";
+const HISTORY_ROUTE_KEY = "__sellxRoute";
+const PAGE_TABS = new Set(["catalog", "desk", "dealroom"]);
 
-function getStoredSellerSession() {
+function getStoredAccountSession() {
   try {
-    const stored = JSON.parse(localStorage.getItem(SELLER_SESSION_KEY));
+    const stored = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY));
     if (!stored || typeof stored.token !== "string" || !stored.user?.id) return null;
     const { id, email, name, role, verified, createdAt } = stored.user;
     return {
@@ -54,19 +57,47 @@ function getStoredSellerSession() {
   }
 }
 
+function getStoredPageState() {
+  const fallback = { role: "buyer", activeTab: "catalog", activeDealId: null, detailProductId: null, footerInfoTopic: null };
+  try {
+    const stored = JSON.parse(localStorage.getItem(PAGE_STATE_KEY));
+    if (!stored || typeof stored !== "object") return fallback;
+    return {
+      role: stored.role === "seller" ? "seller" : "buyer",
+      activeTab: PAGE_TABS.has(stored.activeTab) ? stored.activeTab : fallback.activeTab,
+      activeDealId: typeof stored.activeDealId === "string" ? stored.activeDealId : null,
+      detailProductId: typeof stored.detailProductId === "string" ? stored.detailProductId : null,
+      footerInfoTopic: typeof stored.footerInfoTopic === "string" ? stored.footerInfoTopic : null,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function routeKey(route) {
+  return JSON.stringify(route);
+}
+
 export default function App() {
+  const [restoredPage] = useState(getStoredPageState);
+  const didInitializeRole = useRef(false);
+  const navigationRef = useRef({ initialized: false, key: null, depth: 0, replaceNext: false, skipRoleEffect: false });
   const [theme, setTheme] = useState("light");
-  const [sellerSession, setSellerSession] = useState(getStoredSellerSession);
-  const [role, setRole] = useState("seller");
-  const [sellerAuthed, setSellerAuthed] = useState(() => Boolean(sellerSession));
-  const [activeTab, setActiveTab] = useState("catalog");
+  const [accountSession, setAccountSession] = useState(getStoredAccountSession);
+  const [role, setRole] = useState(() => (accountSession || restoredPage.role !== "seller" ? restoredPage.role : "buyer"));
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(accountSession));
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authReason, setAuthReason] = useState("");
+  const [activeTab, setActiveTab] = useState(() => (
+    accountSession || !["desk", "dealroom"].includes(restoredPage.activeTab) ? restoredPage.activeTab : "catalog"
+  ));
   const [deals, setDeals] = useState(INITIAL_DEALS);
-  const [activeDealId, setActiveDealId] = useState(null);
+  const [activeDealId, setActiveDealId] = useState(() => (accountSession ? restoredPage.activeDealId : null));
   const [automationProduct, setAutomationProduct] = useState(null);
-  const [footerInfoTopic, setFooterInfoTopic] = useState(null);
+  const [footerInfoTopic, setFooterInfoTopic] = useState(restoredPage.footerInfoTopic);
 
   const [rfqProduct, setRfqProduct] = useState(null);
-  const [detailProduct, setDetailProduct] = useState(null);
+  const [detailProductId, setDetailProductId] = useState(restoredPage.detailProductId);
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [sellerProducts, setSellerProducts] = useState([]);
@@ -111,16 +142,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!didInitializeRole.current) {
+      didInitializeRole.current = true;
+      return;
+    }
+    if (navigationRef.current.skipRoleEffect) {
+      navigationRef.current = { ...navigationRef.current, skipRoleEffect: false };
+      return;
+    }
     setActiveTab(role === "buyer" ? "catalog" : "desk");
-    setDetailProduct(null);
+    setDetailProductId(null);
   }, [role]);
 
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key !== "Escape") return;
-      if (rfqProduct) setRfqProduct(null);
+      if (authModalOpen) setAuthModalOpen(false);
+      else if (rfqProduct) setRfqProduct(null);
       else if (addItemOpen) setAddItemOpen(false);
-      else if (detailProduct) setDetailProduct(null);
+      else if (detailProductId) setDetailProductId(null);
       else if (acceptModal.dealId) setAcceptModal({ dealId: null, viewOnly: false });
       else if (declineModal.dealId) setDeclineModal({ dealId: null, role: null });
       else if (paymentModal.dealId) setPaymentModal({ dealId: null });
@@ -129,7 +169,7 @@ export default function App() {
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [rfqProduct, addItemOpen, detailProduct, acceptModal.dealId, declineModal.dealId, paymentModal.dealId, cartOpen, notifOpen]);
+  }, [authModalOpen, rfqProduct, addItemOpen, detailProductId, acceptModal.dealId, declineModal.dealId, paymentModal.dealId, cartOpen, notifOpen]);
 
   const pushNotification = (text, { icon = Info, tone = "teal", dealId } = {}) => {
     setNotifications((prev) => [{ id: genId("n"), text, icon, tone, dealId }, ...prev].slice(0, 30));
@@ -145,10 +185,139 @@ export default function App() {
     return Array.from(map.values());
   }, [sellerProducts, backendProducts]);
 
+  const detailProduct = useMemo(
+    () => (detailProductId ? allProducts.find((product) => product.id === detailProductId) || null : null),
+    [allProducts, detailProductId]
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        PAGE_STATE_KEY,
+        JSON.stringify({ role, activeTab, activeDealId, detailProductId, footerInfoTopic })
+      );
+    } catch {
+      // Browsing still works if local storage is unavailable.
+    }
+  }, [role, activeTab, activeDealId, detailProductId, footerInfoTopic]);
+
+  // Mirror SellX page changes into the browser history, so Chrome Back/Forward
+  // moves through the screens the buyer has actually visited.
+  useEffect(() => {
+    const route = { role, activeTab, activeDealId, detailProductId, footerInfoTopic };
+    const key = routeKey(route);
+    const state = window.history.state;
+
+    if (!navigationRef.current.initialized) {
+      const existingEntry = state?.[HISTORY_ROUTE_KEY];
+      const depth = Number.isInteger(existingEntry?.depth) && existingEntry.depth >= 0 ? existingEntry.depth : 0;
+      window.history.replaceState({ ...state, [HISTORY_ROUTE_KEY]: { route, depth } }, "");
+      navigationRef.current = { initialized: true, key, depth, replaceNext: false, skipRoleEffect: false };
+      return;
+    }
+
+    if (navigationRef.current.key === key) return;
+
+    if (navigationRef.current.replaceNext) {
+      window.history.replaceState(
+        { ...state, [HISTORY_ROUTE_KEY]: { route, depth: navigationRef.current.depth } },
+        ""
+      );
+      navigationRef.current = { ...navigationRef.current, key, replaceNext: false };
+      return;
+    }
+
+    const depth = navigationRef.current.depth + 1;
+    window.history.pushState({ ...state, [HISTORY_ROUTE_KEY]: { route, depth } }, "");
+    navigationRef.current = { ...navigationRef.current, key, depth };
+  }, [role, activeTab, activeDealId, detailProductId, footerInfoTopic]);
+
+  useEffect(() => {
+    const restoreRoute = (event) => {
+      const saved = event.state?.[HISTORY_ROUTE_KEY];
+      if (!saved?.route) return;
+
+      const savedRoute = saved.route;
+      const canOpenPrivatePage = Boolean(accountSession);
+      const nextRole = canOpenPrivatePage && savedRoute.role === "seller" ? "seller" : "buyer";
+      const nextTab = PAGE_TABS.has(savedRoute.activeTab) ? savedRoute.activeTab : "catalog";
+      const safeTab = !canOpenPrivatePage && (nextTab === "desk" || nextTab === "dealroom") ? "catalog" : nextTab;
+      const nextRoute = {
+        role: nextRole,
+        activeTab: safeTab,
+        activeDealId: canOpenPrivatePage && typeof savedRoute.activeDealId === "string" ? savedRoute.activeDealId : null,
+        detailProductId: typeof savedRoute.detailProductId === "string" ? savedRoute.detailProductId : null,
+        footerInfoTopic: typeof savedRoute.footerInfoTopic === "string" ? savedRoute.footerInfoTopic : null,
+      };
+
+      navigationRef.current = {
+        initialized: true,
+        key: routeKey(nextRoute),
+        depth: Number.isInteger(saved.depth) && saved.depth >= 0 ? saved.depth : 0,
+        replaceNext: false,
+        skipRoleEffect: role !== nextRoute.role,
+      };
+      setRole(nextRoute.role);
+      setActiveTab(nextRoute.activeTab);
+      setActiveDealId(nextRoute.activeDealId);
+      setDetailProductId(nextRoute.detailProductId);
+      setFooterInfoTopic(nextRoute.footerInfoTopic);
+    };
+
+    window.addEventListener("popstate", restoreRoute);
+    return () => window.removeEventListener("popstate", restoreRoute);
+  }, [accountSession]);
+
+  const navigateBack = () => {
+    if (navigationRef.current.depth > 0) {
+      window.history.back();
+      return;
+    }
+
+    const isMarketplace = role === "buyer" && activeTab === "catalog" && !detailProductId && !footerInfoTopic;
+    if (isMarketplace) {
+      window.history.back();
+      return;
+    }
+
+    navigationRef.current = { ...navigationRef.current, replaceNext: true };
+    setRole("buyer");
+    setActiveTab("catalog");
+    setActiveDealId(null);
+    setDetailProductId(null);
+    setFooterInfoTopic(null);
+  };
+
   const cartIds = useMemo(() => new Set(cartItems.map((p) => p.id)), [cartItems]);
 
+  const requestAuthentication = (action = "continue") => {
+    setAuthReason(action);
+    setAuthModalOpen(true);
+  };
+
+  const handleLogin = (session) => {
+    const { id, email, name, role: accountRole, verified, createdAt } = session.user;
+    const safeSession = {
+      token: session.token,
+      user: { id, email, name, role: accountRole, verified, ...(createdAt == null ? {} : { createdAt }) },
+    };
+    localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(safeSession));
+    setAccountSession(safeSession);
+    setIsAuthenticated(true);
+    setAuthModalOpen(false);
+    setRole("buyer");
+    setActiveTab("catalog");
+    setDetailProductId(null);
+    setFooterInfoTopic(null);
+    pushNotification("Signed in. Your buyer account is ready.", { icon: Store, tone: "teal" });
+  };
+
   const goToTab = (tab) => {
-    setDetailProduct(null);
+    if (!isAuthenticated && (tab === "dealroom" || tab === "desk")) {
+      requestAuthentication(tab === "desk" ? "open Seller Portal" : "view your offers");
+      return;
+    }
+    setDetailProductId(null);
     setFooterInfoTopic(null);
     setActiveTab(tab);
   };
@@ -328,7 +497,13 @@ export default function App() {
     }
   };
 
-  const openPayment = (dealId) => setPaymentModal({ dealId });
+  const openPayment = (dealId) => {
+    if (!isAuthenticated) {
+      requestAuthentication("continue to payment");
+      return;
+    }
+    setPaymentModal({ dealId });
+  };
 
   const confirmPayment = (dealId, method) => {
     setDeals((prev) =>
@@ -360,6 +535,10 @@ export default function App() {
   };
 
   const toggleCart = (product) => {
+    if (!isAuthenticated) {
+      requestAuthentication("save items to your cart");
+      return;
+    }
     setCartItems((prev) => {
       const inCart = prev.some((p) => p.id === product.id);
       if (inCart) {
@@ -389,38 +568,6 @@ export default function App() {
     [deals, activeDealId]
   );
 
-  // If in Seller Login view, render dedicated full-screen login without Header and Footer
-  if (!sellerAuthed) {
-    return (
-      <div className={`sellx-root ${theme} min-h-screen bg-[var(--ink)] text-[var(--paper)] font-body flex flex-col`}>
-        <style>{GLOBAL_STYLES}</style>
-        <SellerLoginPage
-          theme={theme}
-          setTheme={setTheme}
-          onLogin={(session) => {
-            const { id, email, name, role, verified, createdAt } = session.user;
-            const safeSession = {
-              token: session.token,
-              user: { id, email, name, role, verified, ...(createdAt == null ? {} : { createdAt }) },
-            };
-            localStorage.setItem(SELLER_SESSION_KEY, JSON.stringify(safeSession));
-            setSellerSession(safeSession);
-            setSellerAuthed(true);
-            setRole("seller");
-            pushNotification("Signed in to Seller Trade Desk.", { icon: Store, tone: "brass" });
-          }}
-        />
-        <NotificationDrawer
-          open={notifOpen}
-          onClose={() => setNotifOpen(false)}
-          notifications={notifications}
-          onClear={() => setNotifications([])}
-          onNotificationClick={handleNotificationClick}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className={`sellx-root ${theme} min-h-screen bg-[var(--ink)] text-[var(--paper)] font-body flex flex-col relative overflow-x-hidden`}>
       <style>{GLOBAL_STYLES}</style>
@@ -436,7 +583,7 @@ export default function App() {
         setTheme={setTheme}
         stats={stats}
         cartCount={cartItems.length}
-        onOpenCart={() => setCartOpen(true)}
+        onOpenCart={() => isAuthenticated ? setCartOpen(true) : requestAuthentication("open your saved items")}
         onOpenNotifications={() => {
           setNotifOpen(true);
           setUnreadCount(0);
@@ -444,14 +591,21 @@ export default function App() {
         unreadCount={unreadCount}
         activeTab={activeTab}
         setActiveTab={goToTab}
-        sellerAuthed={sellerAuthed}
-        onOpenAddItem={() => setAddItemOpen(true)}
+        sellerAuthed={isAuthenticated}
+        isAuthenticated={isAuthenticated}
+        onRequestAuth={requestAuthentication}
+        onOpenAddItem={() => isAuthenticated ? setAddItemOpen(true) : requestAuthentication("post an item for sale")}
         onSignOut={() => {
-          localStorage.removeItem(SELLER_SESSION_KEY);
-          setSellerSession(null);
-          setSellerAuthed(false);
-          setRole("seller");
-          pushNotification("Signed out of seller trade desk.", { icon: Store, tone: "neutral" });
+          localStorage.removeItem(ACCOUNT_SESSION_KEY);
+          localStorage.removeItem(PAGE_STATE_KEY);
+          setAccountSession(null);
+          setIsAuthenticated(false);
+          setRole("buyer");
+          setActiveTab("catalog");
+          setActiveDealId(null);
+          setDetailProductId(null);
+          setFooterInfoTopic(null);
+          pushNotification("Signed out of your SellX account.", { icon: Store, tone: "neutral" });
         }}
       />
 
@@ -461,9 +615,13 @@ export default function App() {
         {footerInfoTopic ? (
           <FooterInfoPage
             topic={footerInfoTopic}
-            onClose={() => setFooterInfoTopic(null)}
+            onClose={navigateBack}
             onNavigate={(newRole, tab) => {
               setFooterInfoTopic(null);
+              if (newRole === "seller" && !isAuthenticated) {
+                requestAuthentication("open Seller Portal");
+                return;
+              }
               if (newRole) setRole(newRole);
               if (tab) goToTab(tab);
             }}
@@ -472,9 +630,9 @@ export default function App() {
           <ProductDetailPage
             product={detailProduct}
             allProducts={allProducts}
-            onOpenProduct={(p) => setDetailProduct(p)}
-            onBack={() => setDetailProduct(null)}
-            onRequestQuote={(p) => setRfqProduct(p)}
+            onOpenProduct={(p) => setDetailProductId(p.id)}
+            onBack={navigateBack}
+            onRequestQuote={(p) => isAuthenticated ? setRfqProduct(p) : requestAuthentication("make an offer")}
             onToggleCart={toggleCart}
             inCart={cartIds.has(detailProduct.id)}
             cart={cartItems}
@@ -484,10 +642,10 @@ export default function App() {
             {activeTab === "catalog" && (
               <CatalogView
                 products={allProducts}
-                onRequestQuote={(p) => setRfqProduct(p)}
+                onRequestQuote={(p) => isAuthenticated ? setRfqProduct(p) : requestAuthentication("make an offer")}
                 onToggleCart={toggleCart}
                 cartItems={cartItems}
-                onOpenProduct={(p) => setDetailProduct(p)}
+                onOpenProduct={(p) => setDetailProductId(p.id)}
               />
             )}
 
@@ -502,7 +660,7 @@ export default function App() {
                 onQuickAccept={(dealId) => requestLock(dealId, false)}
                 onQuickCounter={quickCounter}
                 onQuickReject={(dealId) => requestDecline(dealId, "seller")}
-                onAddItem={() => setAddItemOpen(true)}
+                onAddItem={() => isAuthenticated ? setAddItemOpen(true) : requestAuthentication("post an item for sale")}
                 onOpenAutomationRules={(product) => setAutomationProduct(product)}
               />
             )}
@@ -563,13 +721,17 @@ export default function App() {
       {/* Footer */}
       <Footer
         onNavigate={(newRole, tab) => {
+          if (newRole === "seller" && !isAuthenticated) {
+            requestAuthentication("open Seller Portal");
+            return;
+          }
           if (newRole) setRole(newRole);
           if (tab) goToTab(tab);
         }}
         onOpenInfo={(topic) => setFooterInfoTopic(topic)}
         onSelectCategory={(category) => {
           goToTab("catalog");
-          setDetailProduct(null);
+          setDetailProductId(null);
         }}
       />
 
@@ -578,6 +740,7 @@ export default function App() {
         open={notifOpen}
         onClose={() => setNotifOpen(false)}
         notifications={notifications}
+        role={role}
         onClear={() => setNotifications([])}
         onNotificationClick={handleNotificationClick}
       />
@@ -587,7 +750,12 @@ export default function App() {
         onClose={() => setCartOpen(false)}
         items={cartItems}
         onRemove={removeCartItem}
-        onCheckout={(item) => {
+        onClear={() => setCartItems([])}
+        onGoToCatalog={() => {
+          setCartOpen(false);
+          goToTab("catalog");
+        }}
+        onNegotiateItem={(item) => {
           setCartOpen(false);
           setRfqProduct(item);
         }}
@@ -637,6 +805,17 @@ export default function App() {
         onClose={() => setPaymentModal({ dealId: null })}
         onConfirmPayment={confirmPayment}
       />
+
+      {authModalOpen && (
+        <SellerLoginPage
+          modal
+          authReason={authReason}
+          theme={theme}
+          setTheme={setTheme}
+          onClose={() => setAuthModalOpen(false)}
+          onLogin={handleLogin}
+        />
+      )}
     </div>
   );
 }

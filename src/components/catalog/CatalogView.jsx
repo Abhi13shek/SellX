@@ -80,19 +80,30 @@ export function CatalogView({
     return list;
   }, [products, activeCategory, activeCity, activeCondition, search, sortBy]);
 
+  const hasActiveFilters = Boolean(
+    search.trim() || activeCategory !== "All" || activeCity !== "All India" || activeCondition !== "All" || sortBy !== "default"
+  );
+
+  const clearFilters = () => {
+    setSearch("");
+    setActiveCategory("All");
+    setActiveCity("All India");
+    setActiveCondition("All");
+    setSortBy("default");
+  };
+
   return (
     <div className="space-y-4 sellx-rise">
-      {/* Top Search & Location Toolbar */}
-      <div className="flex flex-col md:flex-row gap-3">
-        {/* Search Bar */}
-        <div className="flex-1 flex items-center bg-[var(--surface)] border border-[var(--line)] rounded-xl px-3.5 shadow-sm focus-within:border-[var(--teal)] transition-colors">
+      {/* Compact search followed immediately by every filter. */}
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+        <div className="flex w-full items-center rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 shadow-sm transition-colors focus-within:border-[var(--teal)] xl:w-80 xl:shrink-0">
           <Search size={16} className="text-[var(--mist)] shrink-0" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search phones, laptops, bikes, cameras, localities..."
-            className="w-full bg-transparent py-2.5 px-2.5 text-sm text-[var(--paper)] outline-none placeholder:text-[var(--mist-dim)]"
+            placeholder="Search listings..."
+            className="w-full bg-transparent px-2.5 py-2.5 text-sm text-[var(--paper)] outline-none placeholder:text-[var(--mist-dim)]"
           />
           {search && (
             <button
@@ -104,84 +115,31 @@ export function CatalogView({
           )}
         </div>
 
-        {/* City Filter Pills Dropdown */}
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-xs font-medium text-[var(--mist)] shadow-sm">
-          <MapPin size={14} className="text-rose-500 shrink-0" />
-          <span className="hidden sm:inline">City:</span>
-          <select
-            value={activeCity}
-            onChange={(e) => setActiveCity(e.target.value)}
-            className="bg-transparent text-[var(--paper)] outline-none cursor-pointer font-semibold"
-          >
-            {CITIES.map((c) => (
-              <option key={c} value={c} className="bg-[var(--surface)] text-[var(--paper)]">
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sort Selector */}
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-xs font-medium text-[var(--mist)] shadow-sm shrink-0">
-          <SlidersHorizontal size={14} className="text-[var(--mist)] shrink-0" />
-          <span className="hidden sm:inline">Sort:</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-transparent text-[var(--paper)] outline-none cursor-pointer font-semibold"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id} className="bg-[var(--surface)] text-[var(--paper)]">
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Category & Condition Filter Row */}
-      <div className="flex flex-col gap-2 pt-1">
-        {/* Categories */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {categories.map((cat) => {
-            const isSelected = activeCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
-                  isSelected
-                    ? "bg-[var(--teal)] text-[var(--on-teal)] border-[var(--teal)] shadow-sm"
-                    : "bg-[var(--surface)] border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface2)]"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Condition Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
-          <span className="text-[11px] font-semibold text-[var(--mist-dim)] uppercase tracking-wider mr-1">
-            Condition:
-          </span>
-          {CONDITIONS.map((cond) => {
-            const isSelected = activeCondition === cond;
-            return (
-              <button
-                key={cond}
-                onClick={() => setActiveCondition(cond)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                  isSelected
-                    ? "bg-amber-500/15 text-amber-500 border border-amber-500/40 font-bold"
-                    : "bg-[var(--surface2)] text-[var(--mist)] hover:text-[var(--paper)] border border-transparent"
-                }`}
-              >
-                {cond}
-              </button>
-            );
-          })}
+        <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
+          <label className="flex min-w-0 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2.5 py-2 text-xs font-medium text-[var(--mist)] shadow-sm">
+            <MapPin size={14} className="shrink-0 text-rose-500" />
+            <select value={activeCity} onChange={(e) => setActiveCity(e.target.value)} aria-label="City" className="min-w-0 flex-1 cursor-pointer bg-transparent font-semibold text-[var(--paper)] outline-none">
+              {CITIES.map((city) => <option key={city} value={city} className="bg-[var(--surface)] text-[var(--paper)]">{city}</option>)}
+            </select>
+          </label>
+          <label className="flex min-w-0 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2.5 py-2 text-xs font-medium text-[var(--mist)] shadow-sm">
+            <Tag size={14} className="shrink-0 text-[var(--teal)]" />
+            <select value={activeCategory} onChange={(e) => setActiveCategory(e.target.value)} aria-label="Category" className="min-w-0 flex-1 cursor-pointer bg-transparent font-semibold text-[var(--paper)] outline-none">
+              {categories.map((category) => <option key={category} value={category} className="bg-[var(--surface)] text-[var(--paper)]">{category}</option>)}
+            </select>
+          </label>
+          <label className="flex min-w-0 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2.5 py-2 text-xs font-medium text-[var(--mist)] shadow-sm">
+            <ShieldCheck size={14} className="shrink-0 text-amber-500" />
+            <select value={activeCondition} onChange={(e) => setActiveCondition(e.target.value)} aria-label="Condition" className="min-w-0 flex-1 cursor-pointer bg-transparent font-semibold text-[var(--paper)] outline-none">
+              {CONDITIONS.map((condition) => <option key={condition} value={condition} className="bg-[var(--surface)] text-[var(--paper)]">{condition}</option>)}
+            </select>
+          </label>
+          <label className="flex min-w-0 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2.5 py-2 text-xs font-medium text-[var(--mist)] shadow-sm">
+            <SlidersHorizontal size={14} className="shrink-0 text-[var(--mist)]" />
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="Sort listings" className="min-w-0 flex-1 cursor-pointer bg-transparent font-semibold text-[var(--paper)] outline-none">
+              {SORT_OPTIONS.map((option) => <option key={option.id} value={option.id} className="bg-[var(--surface)] text-[var(--paper)]">{option.label}</option>)}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -191,12 +149,30 @@ export function CatalogView({
           Showing <b className="text-[var(--paper)]">{visibleProducts.length}</b> pre-owned listings in{" "}
           <span className="text-[var(--teal)] font-semibold">{activeCity}</span>
         </span>
-        {activeCondition !== "All" && (
-          <span className="text-[11px] text-amber-500 font-semibold bg-amber-500/10 px-2 py-0.5 rounded-md">
-            Filtered: {activeCondition}
-          </span>
+        {hasActiveFilters && (
+          <button type="button" onClick={clearFilters} className="text-[11px] text-[var(--teal)] font-semibold hover:underline">
+            Clear filters
+          </button>
         )}
       </div>
+
+      {!hasActiveFilters && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px rounded-2xl overflow-hidden border border-[var(--line)] bg-[var(--line)]/70">
+          {[
+            ["1", "Find an item", "Browse verified local listings."],
+            ["2", "Make your offer", "Propose a price and pickup plan."],
+            ["3", "Negotiate safely", "Agree in chat before handover."],
+          ].map(([step, title, detail]) => (
+            <div key={step} className="flex items-center gap-3 bg-[var(--surface)] px-4 py-3.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--teal)]/12 text-xs font-bold text-[var(--teal)]">{step}</span>
+              <div>
+                <p className="text-xs font-semibold text-[var(--paper)]">{title}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--mist)]">{detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Product Grid */}
       {visibleProducts.length === 0 ? (

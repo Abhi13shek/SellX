@@ -92,14 +92,14 @@ export function DealRoom({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-[var(--paper)]">
-              Deal Room &amp; Negotiations
+              Your offers
             </h1>
             <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[var(--surface2)] border border-[var(--line)] text-[var(--mist)]">
-              {deals.length} active chats
+              {deals.length} conversations
             </span>
           </div>
           <p className="text-sm text-[var(--mist)]">
-            Each pre-owned item has its own dedicated negotiation thread, price history, and term sheet.
+            Review offers, chat with the other party, and agree on the details when you are ready.
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export function DealRoom({
             onClick={onOpenCatalog}
             className="self-start md:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-sm shrink-0"
           >
-            <span>+ Request New Quote</span>
+            <span>Browse marketplace</span>
           </button>
         )}
       </div>
@@ -137,10 +137,10 @@ export function DealRoom({
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
           {[
-            { id: "all", label: "All Chats" },
-            { id: "proposed", label: "Active Offers" },
-            { id: "locked", label: "Locked" },
-            { id: "declined", label: "Declined" },
+            { id: "all", label: "All" },
+            { id: "proposed", label: "In progress" },
+            { id: "locked", label: "Agreed" },
+            { id: "declined", label: "Closed" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -276,7 +276,7 @@ export function DealRoom({
                     }}
                     className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-sm"
                   >
-                    <span>Open Chat</span>
+                    <span>View offer</span>
                     <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </div>
