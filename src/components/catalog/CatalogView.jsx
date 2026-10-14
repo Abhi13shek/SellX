@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   X,
   MapPin,
-  Sparkles,
   ShieldCheck,
   Tag,
   Clock,
@@ -41,14 +40,6 @@ export function CatalogView({
     const set = new Set(products.map((p) => p.category));
     return ["All", ...Array.from(set)];
   }, [products]);
-
-  const categoryCards = useMemo(
-    () => categories.filter((category) => category !== "All").map((category) => ({
-      category,
-      product: products.find((product) => product.category === category),
-    })),
-    [categories, products]
-  );
 
   const cartIds = useMemo(() => {
     if (propCartIds) return propCartIds;
@@ -248,38 +239,33 @@ export function CatalogView({
         <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-[var(--teal)]" /> Secure OTP handover</span>
       </section>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-3 py-3 shadow-sm">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--paper)]">Explore categories</h2>
-            <p className="mt-0.5 text-[11px] text-[var(--mist)]">Verified pre-owned finds, ready to bargain.</p>
+      {!hasActiveFilters && (
+        <section className="grid overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-sm lg:grid-cols-12">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[var(--teal)] via-emerald-600 to-cyan-700 p-6 text-[var(--on-teal)] sm:p-7 lg:col-span-7">
+            <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-white/10" />
+            <div className="absolute -bottom-20 left-1/3 h-44 w-44 rounded-full border-[18px] border-white/10" />
+            <div className="relative max-w-md">
+              <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">Find a better second life for great tech.</h1>
+              <p className="mt-2 text-sm leading-relaxed text-white/80">Browse verified local listings, bargain directly, and complete every handover safely.</p>
+              <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-semibold">
+                <span className="rounded-full bg-white/14 px-2.5 py-1">Direct seller chat</span>
+                <span className="rounded-full bg-white/14 px-2.5 py-1">Protected OTP handover</span>
+              </div>
+            </div>
           </div>
-          {activeCategories.length > 0 && <button type="button" onClick={() => setActiveCategories([])} className="text-[11px] font-semibold text-[var(--teal)] hover:underline">View all</button>}
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setActiveCategories([])}
-            className={`flex min-w-[92px] flex-col items-center gap-1.5 rounded-xl border px-2 py-2 text-center text-[11px] font-semibold transition-all ${activeCategories.length === 0 ? "border-[var(--teal)] bg-[var(--teal)] text-[var(--on-teal)] shadow-sm" : "border-[var(--line)] bg-[var(--surface2)]/45 text-[var(--mist)] hover:border-[var(--teal)]/35 hover:text-[var(--paper)]"}`}
-          >
-            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${activeCategories.length === 0 ? "bg-white/15" : "bg-[var(--teal)]/10 text-[var(--teal)]"}`}><Sparkles size={18} /></span>
-            For you
-          </button>
-          {categoryCards.map(({ category, product }) => (
-            <button
-              key={category}
-              type="button"
-              onClick={() => toggleSelection(setActiveCategories, category, "All")}
-              className={`flex min-w-[92px] flex-col items-center gap-1.5 rounded-xl border px-2 py-2 text-center text-[11px] font-semibold transition-all ${activeCategories.includes(category) ? "border-[var(--teal)] bg-[var(--teal)]/10 text-[var(--teal)] shadow-sm" : "border-[var(--line)] bg-[var(--surface2)]/45 text-[var(--mist)] hover:border-[var(--teal)]/35 hover:text-[var(--paper)]"}`}
-            >
-              <span className="h-10 w-10 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
-                <ProductImageTile image={product?.image} category={category} alt={category} className="h-full w-full object-cover" />
-              </span>
-              <span className="max-w-[82px] truncate">{category}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-cols-2 gap-px bg-[var(--line)] lg:col-span-5">
+            {products.slice(0, 2).map((product) => (
+              <button key={product.id} type="button" onClick={() => onOpenProduct(product)} className="group bg-[var(--surface)] p-3 text-left transition-colors hover:bg-[var(--surface2)]">
+                <div className="overflow-hidden rounded-xl bg-[var(--surface2)]">
+                  <ProductImageTile image={product.image} category={product.category} alt={product.name} className="h-28 w-full object-cover transition-transform duration-300 group-hover:scale-105 sm:h-32" />
+                </div>
+                <p className="mt-2 line-clamp-2 text-xs font-semibold leading-snug text-[var(--paper)]">{product.name}</p>
+                <p className="mt-1 font-mono text-sm font-bold text-[var(--price)]">{fmtINR(product.basePrice)}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Listings Count Bar */}
       <div className="flex items-center justify-between text-xs text-[var(--mist)] pt-1 px-1">
