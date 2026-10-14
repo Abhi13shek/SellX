@@ -10,6 +10,8 @@ router.get("/:id", dealController.getDealById);
 router.post("/", validateRequestBody(["productId"]), dealController.createDeal);
 router.post("/:id/accept", dealController.acceptDeal);
 router.post("/:id/decline", dealController.declineDeal);
+router.post("/:id/payment", dealController.recordPayment);
+router.post("/:id/handover/verify", dealController.verifyHandoverOtp);
 router.post("/:id/counter", validateRequestBody(["unitPrice", "leadTimeDays"]), dealController.submitCounter);
 
 // Nested message routes

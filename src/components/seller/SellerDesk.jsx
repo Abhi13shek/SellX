@@ -27,7 +27,9 @@ export function SellerDesk({
     };
 
     deals.forEach((d) => {
-      const stage = d.termSheet?.status === "locked"
+      const stage = d.termSheet?.status === "completed"
+        ? "Completed Deals"
+        : d.termSheet?.status === "locked"
         ? "Agreed / Handover Pending"
         : stageMap[getStage(d)] || "Active Bargains";
       g[stage].push(d);

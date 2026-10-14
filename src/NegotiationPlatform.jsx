@@ -119,7 +119,8 @@ export default function App() {
   const [declineModal, setDeclineModal] = useState({ dealId: null, role: null });
   const [paymentModal, setPaymentModal] = useState({ dealId: null });
 
-  // Load initial products and deals from backend API
+  // The API is the shared source of truth: listings, offers, and chat updates
+  // created in one browser are visible to the other party's view.
   useEffect(() => {
     async function loadData() {
       try {
@@ -139,6 +140,9 @@ export default function App() {
       }
     }
     loadData();
+
+    const refreshId = window.setInterval(loadData, 5000);
+    return () => window.clearInterval(refreshId);
   }, []);
 
   useEffect(() => {
@@ -323,12 +327,19 @@ export default function App() {
   };
 
   const addSellerProduct = async (product) => {
-    setSellerProducts((prev) => [product, ...prev]);
+    const sellerName = accountSession?.user?.name || "Verified Owner";
+    const sellerProduct = {
+      ...product,
+      supplier: `${sellerName} (Verified Seller)`,
+    };
+    setSellerProducts((prev) => [sellerProduct, ...prev]);
     setAddItemOpen(false);
-    pushNotification(`"${product.name}" is now live on the marketplace.`, { icon: PackagePlus, tone: "brass" });
+    pushNotification(`"${sellerProduct.name}" is now live on the marketplace.`, { icon: PackagePlus, tone: "brass" });
 
     try {
-      await api.createProduct(product);
+      const savedProduct = await api.createProduct(sellerProduct);
+      setSellerProducts((prev) => prev.map((item) => (item.id === sellerProduct.id ? savedProduct : item)));
+      setBackendProducts((prev) => [savedProduct, ...prev.filter((item) => item.id !== savedProduct.id)]);
     } catch (e) {
       console.warn("Backend sync queued:", e);
     }
@@ -353,7 +364,7 @@ export default function App() {
 
   /* ---- actions ---- */
 
-  const submitRFQ = async ({ product, targetPrice, leadTime, notes }) => {
+  const submitRFQ = async ({ product, targetPrice, leadTime, handoverType, notes }) => {
     const id = `D-${1000 + deals.length + 1}`;
     const offerMsg = {
       id: genId("m"),
@@ -367,33 +378,38 @@ export default function App() {
       ? [sysMsg, offerMsg, { id: genId("m"), sender: "buyer", type: "text", text: notes, timestamp: Date.now() + 1000 }]
       : [sysMsg, offerMsg];
 
-    const deal = {
+    const fallbackDeal = {
       id,
       product,
       productId: product.id,
-      buyerName: "You (Buyer)",
+      buyerName: accountSession?.user?.name || "You (Buyer)",
       sellerName: product.supplier,
       targetMarginPct: 0.22,
       messages,
-      termSheet: { unitPrice: targetPrice, leadTimeDays: leadTime, status: "proposed", expiresAt: Date.now() + 2 * 3600000, lastProposedBy: "buyer" },
+      handoverType,
+      termSheet: { unitPrice: targetPrice, leadTimeDays: leadTime, handoverType, status: "proposed", expiresAt: Date.now() + 2 * 3600000, lastProposedBy: "buyer" },
       createdAt: Date.now(),
     };
 
-    setDeals((prev) => [deal, ...prev]);
     setRfqProduct(null);
-    setActiveDealId(id);
-    setActiveTab("dealroom");
-    pushNotification(`Offer submitted to ${product.supplier} for ${product.name}.`, { icon: Send, tone: "teal", dealId: id });
 
     try {
-      await api.createDeal({
+      const savedDeal = await api.createDeal({
         productId: product.id,
         product,
-        buyerName: "You (Buyer)",
-        initialOffer: { unitPrice: targetPrice, leadTimeDays: leadTime, note: notes },
+        buyerName: accountSession?.user?.name || "You (Buyer)",
+        initialOffer: { unitPrice: targetPrice, leadTimeDays: leadTime, handoverType, note: notes },
       });
+      setDeals((prev) => [savedDeal, ...prev.filter((deal) => deal.id !== savedDeal.id)]);
+      setActiveDealId(savedDeal.id);
+      setActiveTab("dealroom");
+      pushNotification(`Offer sent to ${savedDeal.sellerName || product.supplier} for ${product.name}.`, { icon: Send, tone: "teal", dealId: savedDeal.id });
     } catch (e) {
       console.warn("Backend sync notice:", e);
+      setDeals((prev) => [fallbackDeal, ...prev]);
+      setActiveDealId(fallbackDeal.id);
+      setActiveTab("dealroom");
+      pushNotification(`Offer saved locally for ${product.name}. It will sync when the server reconnects.`, { icon: Send, tone: "teal", dealId: fallbackDeal.id });
     }
   };
 
@@ -407,7 +423,8 @@ export default function App() {
     );
 
     try {
-      await api.postMessage(dealId, { sender: senderRole, text, type: "text" });
+      const result = await api.postMessage(dealId, { sender: senderRole, text, type: "text" });
+      if (result.deal) setDeals((prev) => prev.map((deal) => (deal.id === result.deal.id ? result.deal : deal)));
     } catch (e) {
       console.warn("Backend sync notice:", e);
     }
@@ -441,7 +458,8 @@ export default function App() {
     );
 
     try {
-      await api.submitCounter(dealId, { sender: senderRole, unitPrice, leadTimeDays });
+      const savedDeal = await api.submitCounter(dealId, { sender: senderRole, unitPrice, leadTimeDays });
+      if (savedDeal) setDeals((prev) => prev.map((deal) => (deal.id === savedDeal.id ? savedDeal : deal)));
     } catch (e) {
       console.warn("Backend sync notice:", e);
     }
@@ -474,7 +492,8 @@ export default function App() {
     pushNotification(`Deal locked for ${deals.find((d) => d.id === dealId)?.product?.name || dealId}. Checkout link generated (24h expiry).`, { icon: Lock, tone: "brass", dealId });
 
     try {
-      await api.acceptDeal(dealId, role);
+      const savedDeal = await api.acceptDeal(dealId, role);
+      if (savedDeal) setDeals((prev) => prev.map((deal) => (deal.id === savedDeal.id ? savedDeal : deal)));
     } catch (e) {
       console.warn("Backend sync notice:", e);
     }
@@ -491,7 +510,8 @@ export default function App() {
     pushNotification(`Deal declined for ${deals.find((d) => d.id === dealId)?.product?.name || dealId}.`, { icon: XCircle, tone: "brass", dealId });
 
     try {
-      await api.declineDeal(dealId, senderRole);
+      const savedDeal = await api.declineDeal(dealId, senderRole);
+      if (savedDeal) setDeals((prev) => prev.map((deal) => (deal.id === savedDeal.id ? savedDeal : deal)));
     } catch (e) {
       console.warn("Backend sync notice:", e);
     }
@@ -505,17 +525,22 @@ export default function App() {
     setPaymentModal({ dealId });
   };
 
-  const confirmPayment = (dealId, method) => {
-    setDeals((prev) =>
-      prev.map((d) => {
-        if (d.id !== dealId) return d;
-        const termSheet = { ...d.termSheet, paymentStatus: "paid", paymentMethod: method, paidAt: Date.now() };
-        const label = PAYMENT_METHODS.find((m) => m.key === method)?.label || method;
-        const sysMsg = { id: genId("m"), sender: "system", type: "text", text: `Payment received via ${label}.`, timestamp: Date.now() };
-        return { ...d, messages: [...d.messages, sysMsg], termSheet };
-      })
-    );
-    pushNotification(`Payment received for ${deals.find((d) => d.id === dealId)?.product?.name || dealId}.`, { icon: CheckCircle2, tone: "brass", dealId });
+  const confirmPayment = async (dealId, method) => {
+    const savedDeal = await api.recordPayment(dealId, method);
+    if (savedDeal) {
+      setDeals((prev) => prev.map((deal) => (deal.id === savedDeal.id ? savedDeal : deal)));
+      pushNotification(`Payment recorded for ${savedDeal.product?.name || dealId}. The deal is ready for safe handover.`, { icon: CheckCircle2, tone: "brass", dealId });
+    }
+    return savedDeal;
+  };
+
+  const verifyHandoverOtp = async (dealId, otp) => {
+    const savedDeal = await api.verifyHandoverOtp(dealId, otp);
+    if (savedDeal) {
+      setDeals((prev) => prev.map((deal) => (deal.id === savedDeal.id ? savedDeal : deal)));
+      pushNotification(`Handover verified for ${savedDeal.product?.name || dealId}. The deal is now complete.`, { icon: CheckCircle2, tone: "teal", dealId });
+    }
+    return savedDeal;
   };
 
   const saveAutomationRules = async (productId, rules) => {
@@ -711,6 +736,7 @@ export default function App() {
                   const targetId = (typeof dealId === "string" ? dealId : null) || activeDealId || activeDeal?.id;
                   if (targetId) openPayment(targetId);
                 }}
+                onVerifyHandoverOtp={(dealId, otp) => verifyHandoverOtp(dealId, otp)}
                 onOpenCatalog={() => goToTab("catalog")}
               />
             )}
@@ -803,7 +829,7 @@ export default function App() {
         open={!!paymentModal.dealId}
         deal={deals.find((d) => d.id === paymentModal.dealId)}
         onClose={() => setPaymentModal({ dealId: null })}
-        onConfirmPayment={confirmPayment}
+        onConfirm={confirmPayment}
       />
 
       {authModalOpen && (

@@ -35,6 +35,7 @@ export function DealRoom({
   onDecline,
   onRequestDecline,
   onOpenPayment,
+  onVerifyHandoverOtp,
   onOpenCatalog,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,6 +61,7 @@ export function DealRoom({
         onOpenAccept={handleLock}
         onDecline={handleDecline}
         onOpenPayment={onOpenPayment}
+        onVerifyHandoverOtp={onVerifyHandoverOtp}
         onOpenCatalog={onOpenCatalog}
       />
     );

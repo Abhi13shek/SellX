@@ -39,18 +39,9 @@ export const productController = {
 
   createProduct(req, res, next) {
     try {
-      const { name, basePrice, category, description, supplier, leadTimeDays, highlights, image, sku, cost, automationRules } = req.body;
+      const { basePrice, automationRules } = req.body;
       const product = ProductModel.create({
-        name,
-        basePrice,
-        category,
-        description,
-        supplier,
-        leadTimeDays,
-        highlights,
-        image,
-        sku,
-        cost,
+        ...req.body,
         automationRules: automationRules || {
           enabled: true,
           floorPrice: Math.round(Number(basePrice) * 0.8),

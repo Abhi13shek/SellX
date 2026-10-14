@@ -30,7 +30,7 @@ export function PaymentModal({ deal, onClose, onConfirm }) {
   if (!deal) return null;
   const ts = deal.termSheet;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (method === "upi" && !upiId.trim()) {
       setError("Enter a valid UPI ID.");
       return;
@@ -41,10 +41,14 @@ export function PaymentModal({ deal, onClose, onConfirm }) {
     }
     setError("");
     setStep("processing");
-    setTimeout(() => {
-      onConfirm(deal.id, method);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      await onConfirm(deal.id, method);
       setStep("success");
-    }, 1400);
+    } catch (paymentError) {
+      setStep("select");
+      setError(paymentError?.message || "We could not record this payment. Please try again.");
+    }
   };
 
   return (
@@ -244,7 +248,7 @@ export function PaymentModal({ deal, onClose, onConfirm }) {
                 />
               </div>
               <p className="text-xs text-[var(--mist)] leading-relaxed">
-                {deal.sellerName} has been notified. Order fulfillment begins now.
+                Payment is recorded in this deal and {deal.sellerName} has been notified. Next, arrange inspection and complete the OTP handover.
               </p>
             </div>
             <div className="p-5 border-t border-[var(--line)]">

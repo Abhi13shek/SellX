@@ -5,10 +5,11 @@ import { MiniStat } from "../common/MiniStat.jsx";
 import { fmtINR } from "../../utils/formatters.js";
 import { ProductImageTile } from "../common/ProductImageTile.jsx";
 
-export function OfferCard({ offer, role, mine, product, onAccept, onCounter, onDecline, isLatest }) {
+export function OfferCard({ offer, role, mine, product, onAccept, onCounter, onDecline, isLatest, isDealLocked = false }) {
   const delta = offer.previousUnitPrice != null ? offer.unitPrice - offer.previousUnitPrice : null;
   const deltaPct = delta != null && offer.previousUnitPrice ? (delta / offer.previousUnitPrice) * 100 : null;
-  const statusTone = offer.status === "accepted" ? "green" : offer.status === "superseded" ? "neutral" : "amber";
+  const isAccepted = offer.status === "accepted" || isDealLocked;
+  const statusTone = isAccepted ? "green" : offer.status === "superseded" ? "neutral" : "amber";
   const isProposed = offer.status === "proposed";
 
   return (
@@ -31,16 +32,16 @@ export function OfferCard({ offer, role, mine, product, onAccept, onCounter, onD
               {mine ? "Your Offer" : "Inbound Offer"}
             </span>
             <span className="text-xs font-semibold text-[var(--paper)]">
-              {offer.status === "accepted" ? "Agreed Terms" : isProposed ? "Pending Response" : "Superseded"}
+              {isAccepted ? "Agreed Terms" : isProposed ? "Pending Response" : "Superseded"}
             </span>
           </div>
         </div>
 
         <Badge tone={statusTone}>
-          {offer.status === "accepted" && <CheckCircle2 size={10} />}
+          {isAccepted && <CheckCircle2 size={10} />}
           {offer.status === "superseded" && <ArrowLeftRight size={10} />}
           {offer.status === "proposed" && <Clock size={10} />}
-          {offer.status}
+          {isAccepted ? "accepted" : offer.status}
         </Badge>
       </div>
 
@@ -79,16 +80,17 @@ export function OfferCard({ offer, role, mine, product, onAccept, onCounter, onD
       </div>
 
       {/* 1-Click Quick Actions on latest incoming offer */}
-      {!mine && isProposed && isLatest && onAccept && (
+      {!mine && isProposed && isLatest && (isDealLocked || onAccept) && (
         <div className="mt-3.5 pt-3 border-t border-[var(--line)] flex items-center gap-2">
           <button
-            onClick={onAccept}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[var(--green)] text-[var(--on-green)] text-xs font-semibold hover:brightness-110 transition-all shadow-sm active:scale-95"
+            onClick={isDealLocked ? undefined : onAccept}
+            disabled={isDealLocked}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[var(--green)] text-[var(--on-green)] text-xs font-semibold hover:brightness-110 transition-all shadow-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:brightness-100 disabled:active:scale-100"
           >
             <ShieldCheck size={13} />
-            <span>Accept {fmtINR(offer.unitPrice)}</span>
+            <span>{isDealLocked ? "Accepted · Deal confirmed" : `Accept ${fmtINR(offer.unitPrice)}`}</span>
           </button>
-          {onDecline && (
+          {onDecline && !isDealLocked && (
             <button
               onClick={onDecline}
               className="py-2 px-2.5 rounded-xl bg-[var(--surface2)] border border-[var(--line)] text-xs text-[var(--red)] hover:bg-[var(--red)]/10 hover:border-[var(--red)]/30 transition-all"

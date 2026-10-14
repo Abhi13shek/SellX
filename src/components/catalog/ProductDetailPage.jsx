@@ -155,6 +155,20 @@ export function ProductDetailPage({
                 {distance} away
               </span>
             </div>
+            <div className="grid grid-cols-3 gap-2 border-t border-[var(--line-soft)] pt-3 text-center">
+              <div className="rounded-lg bg-[var(--surface2)] px-1.5 py-2">
+                <span className="block text-[10px] font-bold text-[var(--paper)]">{Math.max(imageList.length, 1)}</span>
+                <span className="mt-0.5 block text-[9px] text-[var(--mist)]">Photos</span>
+              </div>
+              <div className="rounded-lg bg-[var(--surface2)] px-1.5 py-2">
+                <span className="block text-[10px] font-bold text-[var(--paper)]">{includes.some((item) => /bill|invoice/i.test(item)) ? "Included" : "Ask seller"}</span>
+                <span className="mt-0.5 block text-[9px] text-[var(--mist)]">Invoice</span>
+              </div>
+              <div className="rounded-lg bg-[var(--surface2)] px-1.5 py-2">
+                <span className="block text-[10px] font-bold text-[var(--paper)]">OTP</span>
+                <span className="mt-0.5 block text-[9px] text-[var(--mist)]">Handover</span>
+              </div>
+            </div>
           </div>
         </div>
 

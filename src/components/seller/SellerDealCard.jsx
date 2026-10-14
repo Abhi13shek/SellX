@@ -13,6 +13,7 @@ export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, on
   const isOpen = ts.status === "proposed";
   const isLocked = ts.status === "locked";
   const isDeclined = ts.status === "declined";
+  const isCompleted = ts.status === "completed";
 
   const cardColor = catColor(deal.product.category);
 
@@ -50,7 +51,11 @@ export function SellerDealCard({ deal, onOpen, onQuickAccept, onQuickCounter, on
         </div>
 
         <div className="flex items-center justify-between mt-3">
-          {isLocked ? (
+          {isCompleted ? (
+            <Badge tone="green">
+              <CheckCircle2 size={10} /> Completed
+            </Badge>
+          ) : isLocked ? (
             <Badge tone={ts.paymentStatus === "paid" ? "green" : "brass"}>
               {ts.paymentStatus === "paid" ? <CheckCircle2 size={10} /> : <Lock size={10} />}
               {ts.paymentStatus === "paid" ? "Paid (Escrow)" : "Agreed / Handover"}

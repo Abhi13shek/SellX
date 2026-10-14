@@ -4,6 +4,7 @@ export const genId = (prefix) =>
   `${prefix}-${(uidCounter++).toString(36)}${Date.now().toString(36).slice(-4)}`;
 
 export function getStage(deal) {
+  if (deal.termSheet.status === "completed") return "Closed/Won";
   if (deal.termSheet.status === "locked") return "Closed/Won";
   if (deal.termSheet.status === "declined") return "Closed/Won";
   const offerCount = deal.messages.filter((m) => m.type === "offer").length;

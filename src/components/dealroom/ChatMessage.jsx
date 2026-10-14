@@ -74,6 +74,7 @@ export function ChatMessage({ msg, role, deal, onAccept, onCounter, onDecline, i
           onCounter={onCounter}
           onDecline={onDecline}
           isLatest={isLatest}
+          isDealLocked={["locked", "completed"].includes(deal?.termSheet?.status)}
         />
       )}
     </div>

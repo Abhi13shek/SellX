@@ -77,6 +77,10 @@ export function AddItemModal({ open, onClose, onSubmit }) {
       setError("Please enter a valid asking price.");
       return;
     }
+    if (form.minAcceptablePrice && Number(form.minAcceptablePrice) >= Number(form.askingPrice)) {
+      setError("Your minimum acceptable price should be lower than the asking price.");
+      return;
+    }
     setError("");
 
     const basePrice = Number(form.askingPrice);
@@ -136,6 +140,12 @@ export function AddItemModal({ open, onClose, onSubmit }) {
   };
 
   const slotTitles = ["1. Front Angle", "2. Back / Side", "3. Ports & Details"];
+  const photoCount = photoSlots.filter(Boolean).length;
+  const listingChecks = [
+    { label: "Title", complete: Boolean(form.name.trim()) },
+    { label: "Price", complete: Boolean(form.askingPrice && Number(form.askingPrice) > 0) },
+    { label: "Photos", complete: photoCount > 0 },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -162,9 +172,28 @@ export function AddItemModal({ open, onClose, onSubmit }) {
             </div>
           )}
 
+          <section className="rounded-2xl border border-[var(--teal)]/25 bg-[var(--teal)]/5 p-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-bold text-[var(--paper)]">Listing checklist</h4>
+                <p className="mt-0.5 text-[11px] text-[var(--mist)]">Complete the essentials, then publish when ready.</p>
+              </div>
+              <span className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[11px] font-mono font-bold text-[var(--teal)]">
+                {listingChecks.filter((check) => check.complete).length}/3 ready
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {listingChecks.map((check) => (
+                <div key={check.label} className={`rounded-xl border px-2 py-2 text-center text-[10px] font-semibold ${check.complete ? "border-[var(--green)]/30 bg-[var(--green)]/10 text-[var(--green)]" : "border-[var(--line)] bg-[var(--surface)] text-[var(--mist)]"}`}>
+                  {check.complete ? "✓" : "○"} {check.label}
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* 3-Angle Photo Upload Slots */}
           <div>
-            <FieldLabel hint="Add 2-3 angles">Photos from Different Angles</FieldLabel>
+            <FieldLabel hint={`${photoCount}/3 added · Add 2-3 angles`}>Photos from Different Angles</FieldLabel>
             <div className="grid grid-cols-3 gap-2 pt-1">
               {[0, 1, 2].map((idx) => {
                 const preview = photoSlots[idx];
@@ -220,7 +249,7 @@ export function AddItemModal({ open, onClose, onSubmit }) {
           </div>
 
           {/* Category & Condition */}
-          <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <FieldLabel>Category</FieldLabel>
               <select
@@ -235,6 +264,7 @@ export function AddItemModal({ open, onClose, onSubmit }) {
                 ))}
               </select>
             </div>
+            <p className="mt-1.5 text-[11px] text-[var(--mist-dim)]">Your hidden minimum helps automatic counter-offers; buyers only see the asking price.</p>
 
             <div>
               <FieldLabel>Condition</FieldLabel>
