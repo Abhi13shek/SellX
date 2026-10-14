@@ -1,16 +1,15 @@
 import React, { useState, useMemo } from "react";
-import { PackagePlus, Bot, Sparkles, MapPin, ShieldCheck, Tag, ArrowRight } from "lucide-react";
-import { PrimaryButton, GhostButton } from "../common/Buttons.jsx";
+import { PackagePlus, Bot, MapPin, MessageSquare, Handshake, PackageCheck } from "lucide-react";
+import { PrimaryButton } from "../common/Buttons.jsx";
 import { ProductImageTile } from "../common/ProductImageTile.jsx";
 import { SellerDealCard } from "./SellerDealCard.jsx";
 import { STAGES } from "../../data/constants.js";
-import { getStage, marginHealth } from "../../utils/helpers.js";
-import { healthColor } from "../../utils/styles.js";
+import { getStage } from "../../utils/helpers.js";
 import { fmtINR } from "../../utils/formatters.js";
 
 export function SellerDesk({
-  deals,
-  myListings,
+  deals = [],
+  myListings = [],
   onOpenDeal,
   onQuickAccept,
   onQuickCounter,
@@ -20,47 +19,60 @@ export function SellerDesk({
   onOpenInvoice,
 }) {
   const grouped = useMemo(() => {
-    const g = {
-      "Incoming Offers": [],
-      "Active Bargains": [],
-      "Agreed / Handover Pending": [],
-      "Completed Deals": [],
-      // Fallback keys
-      "New Requests": [],
-      "In Negotiation": [],
-      "Pending Acceptance": [],
-      "Closed/Won": [],
+    const g = Object.fromEntries(STAGES.map((stage) => [stage, []]));
+    const stageMap = {
+      "New Requests": "Incoming Offers",
+      "In Negotiation": "Active Bargains",
+      "Pending Acceptance": "Agreed / Handover Pending",
+      "Closed/Won": "Completed Deals",
     };
 
     deals.forEach((d) => {
-      const stage = getStage(d);
-      if (g[stage]) {
-        g[stage].push(d);
-      } else if (stage === "New Requests") {
-        g["Incoming Offers"].push(d);
-      } else if (stage === "In Negotiation") {
-        g["Active Bargains"].push(d);
-      } else if (stage === "Pending Acceptance") {
-        g["Agreed / Handover Pending"].push(d);
-      } else {
-        g["Completed Deals"].push(d);
-      }
+      const stage = d.termSheet?.status === "completed"
+        ? "Completed Deals"
+        : d.termSheet?.status === "locked"
+        ? "Agreed / Handover Pending"
+        : stageMap[getStage(d)] || "Active Bargains";
+      g[stage].push(d);
     });
     return g;
   }, [deals]);
 
   const [activeStage, setActiveStage] = useState(STAGES[0]);
-  const activeList = grouped[activeStage] || [];
+  const actionCards = [
+    {
+      stage: "Incoming Offers",
+      label: "Needs your reply",
+      description: "New buyer offers waiting for a decision",
+      icon: MessageSquare,
+      tone: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
+    },
+    {
+      stage: "Active Bargains",
+      label: "In negotiation",
+      description: "Conversations with an open counter-offer",
+      icon: Handshake,
+      tone: "text-[var(--teal)] bg-[var(--teal)]/10 border-[var(--teal)]/20",
+    },
+    {
+      stage: "Agreed / Handover Pending",
+      label: "Ready for handover",
+      description: "Agreed deals that need a safe completion",
+      icon: PackageCheck,
+      tone: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    },
+  ];
+  const visibleDeals = grouped[activeStage] || [];
 
   return (
     <div className="sellx-rise">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--paper)]">
-            My Sales &amp; Listings Dashboard
+            Seller workspace
           </h1>
           <p className="text-sm text-[var(--mist)] mt-1">
-            Manage your pre-owned items, incoming buyer bargains, and smart auto-accept price rules.
+            Start with the offers that need you, then manage listings and automation.
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -69,6 +81,30 @@ export function SellerDesk({
           </PrimaryButton>
         </div>
       </div>
+
+      <section aria-label="Seller priorities" className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-7">
+        {actionCards.map(({ stage, label, description, icon: Icon, tone }) => {
+          const count = grouped[stage]?.length || 0;
+          const isActive = activeStage === stage;
+          return (
+            <button
+              key={stage}
+              type="button"
+              onClick={() => setActiveStage(stage)}
+              className={`text-left rounded-2xl border p-4 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--teal)]/50 ${
+                isActive ? "border-[var(--teal)] bg-[var(--surface2)] shadow-sm" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--teal)]/40"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${tone}`}><Icon size={17} /></div>
+                <span className="font-mono text-xl font-bold text-[var(--paper)] tabular-nums">{count}</span>
+              </div>
+              <p className="mt-3 text-sm font-semibold text-[var(--paper)]">{label}</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--mist)]">{description}</p>
+            </button>
+          );
+        })}
+      </section>
 
       {/* Active Listings Row */}
       {myListings.length > 0 && (
@@ -143,7 +179,14 @@ export function SellerDesk({
       )}
 
       {/* Bargain Pipeline Tabs */}
-      <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--mist)] mb-3">Bargaining Pipeline</h3>
+      <div className="flex items-end justify-between gap-3 mb-3">
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--mist)]">All negotiations</h3>
+          <p className="text-xs text-[var(--mist-dim)] mt-1">
+            Showing {visibleDeals.length} {visibleDeals.length === 1 ? "deal" : "deals"} in {activeStage.toLowerCase()}.
+          </p>
+        </div>
+      </div>
       <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
         {STAGES.map((s) => {
           const count = (grouped[s] || []).length;
@@ -171,12 +214,12 @@ export function SellerDesk({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 min-h-[120px]">
-        {grouped[activeStage].length === 0 && (
+        {visibleDeals.length === 0 && (
           <div className="sm:col-span-2 xl:col-span-3 rounded-xl border border-dashed border-[var(--line)] py-10 text-center text-[11px] text-[var(--mist-dim)]">
             No deals in {activeStage}
           </div>
         )}
-        {grouped[activeStage].map((deal) => (
+        {visibleDeals.map((deal) => (
           <SellerDealCard
             key={deal.id}
             deal={deal}

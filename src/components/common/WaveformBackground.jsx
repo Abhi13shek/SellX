@@ -5,114 +5,80 @@ export function WaveformBackground() {
     <div
       className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0"
       aria-hidden="true"
+      style={{
+        background:
+          "radial-gradient(circle at 82% 42%, rgba(167, 227, 190, 0.32) 0%, rgba(167, 227, 190, 0.1) 17%, transparent 34%), radial-gradient(circle at 18% 80%, rgba(189, 232, 203, 0.18) 0%, transparent 28%)",
+      }}
     >
-      {/* =========================================================================
-          1. FLUID AURORA BOREALIS / DEEP SPACE NEON MESH ORBS
-          ========================================================================= */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Aurora Orb 1: Electric Mint & Emerald Nebula (Top-Left) */}
-        <div
-          className="aurora-orb-1 absolute -top-[15%] -left-[10%] w-[680px] h-[680px] rounded-full opacity-35 dark:opacity-45 mix-blend-screen pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle at center, rgba(16, 185, 129, 0.45) 0%, rgba(52, 211, 153, 0.25) 45%, rgba(16, 185, 129, 0) 70%)",
-            filter: "blur(90px)",
-            transform: "translate3d(0, 0, 0)",
-          }}
-        />
+      {/* Calm workspace photography adds warmth to open desktop canvas areas. */}
+      <div
+        className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat opacity-[0.22] lg:block dark:opacity-[0.13]"
+        style={{ backgroundImage: "url('/images/marketplace-workspace-background.png')" }}
+      />
+      <div className="absolute inset-0 hidden bg-gradient-to-r from-[var(--ink)]/80 via-[var(--ink)]/58 to-[var(--ink)]/30 lg:block" />
 
-        {/* Aurora Orb 2: Cyber Violet & Neon Indigo Nebula (Top-Right) */}
-        <div
-          className="aurora-orb-2 absolute -top-[10%] -right-[12%] w-[720px] h-[720px] rounded-full opacity-30 dark:opacity-40 mix-blend-screen pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle at center, rgba(139, 92, 246, 0.45) 0%, rgba(99, 102, 241, 0.25) 45%, rgba(139, 92, 246, 0) 70%)",
-            filter: "blur(100px)",
-            transform: "translate3d(0, 0, 0)",
-          }}
-        />
+      {/* Quiet marketplace canvas — gives sparse product grids a deliberate sense of depth. */}
+      <div className="absolute hidden xl:block right-[9%] top-[31%] h-[360px] w-[360px] rounded-full border border-emerald-200/55 bg-white/20 shadow-[0_20px_80px_rgba(16,185,129,0.08)]" />
+      <div className="absolute hidden xl:block right-[13%] top-[35%] h-[280px] w-[280px] rounded-full border border-emerald-200/50" />
+      <div className="absolute hidden xl:block right-[17%] top-[39%] h-[200px] w-[200px] rounded-full border border-emerald-200/45 bg-emerald-100/20" />
+      <div className="absolute hidden xl:block right-[24%] top-[46%] h-14 w-14 rotate-45 rounded-2xl border border-emerald-300/60 bg-white/45 shadow-sm" />
+      <div className="absolute hidden xl:block right-[19%] top-[39%] h-3 w-3 rounded-full bg-emerald-300/80 shadow-[0_0_18px_rgba(16,185,129,0.45)]" />
+      <div className="absolute hidden xl:block right-[35%] top-[58%] h-2.5 w-2.5 rounded-full bg-amber-200/85" />
 
-        {/* Aurora Orb 3: Electric Cyan & Aqua Pulse (Mid-Center Left) */}
-        <div
-          className="aurora-orb-3 absolute top-[35%] -left-[15%] w-[600px] h-[600px] rounded-full opacity-25 dark:opacity-35 mix-blend-screen pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle at center, rgba(6, 182, 212, 0.4) 0%, rgba(20, 184, 166, 0.2) 50%, rgba(6, 182, 212, 0) 75%)",
-            filter: "blur(85px)",
-            transform: "translate3d(0, 0, 0)",
-          }}
-        />
-
-        {/* Aurora Orb 4: Burnished Gold & Amber Sunburst (Bottom-Right) */}
-        <div
-          className="aurora-orb-4 absolute -bottom-[15%] -right-[10%] w-[650px] h-[650px] rounded-full opacity-25 dark:opacity-35 mix-blend-screen pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle at center, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.18) 45%, rgba(245, 158, 11, 0) 70%)",
-            filter: "blur(95px)",
-            transform: "translate3d(0, 0, 0)",
-          }}
-        />
-      </div>
-
-      {/* =========================================================================
-          2. LUMINESCENT HARMONIC SOUNDWAVE RIBBONS (Bilateral Equilibrium Curves)
-          ========================================================================= */}
-      {/* Top Ambient Wave Ribbon */}
-      <div className="absolute -top-12 left-0 right-0 h-96 opacity-20 dark:opacity-30 overflow-hidden">
+      {/* Ambient Top Soundwave / Harmonic Ribbons */}
+      <div className="absolute -top-10 left-0 right-0 h-96 opacity-25 dark:opacity-35 overflow-hidden">
         <svg
           viewBox="0 0 1440 320"
           className="w-full h-full preserve-3d animate-wave-slow"
           preserveAspectRatio="none"
         >
           <defs>
-            <linearGradient id="aurora-grad-emerald" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.05" />
-              <stop offset="30%" stopColor="#34D399" stopOpacity="0.75" />
-              <stop offset="70%" stopColor="#06B6D4" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0.05" />
+            <linearGradient id="wave-grad-emerald" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.1" />
+              <stop offset="50%" stopColor="#34D399" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#10B981" stopOpacity="0.1" />
             </linearGradient>
-            <linearGradient id="aurora-grad-violet" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.05" />
-              <stop offset="50%" stopColor="#A78BFA" stopOpacity="0.65" />
-              <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.05" />
+            <linearGradient id="wave-grad-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.1" />
+              <stop offset="50%" stopColor="#FBBF24" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.1" />
             </linearGradient>
-            <filter id="aurora-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="8" result="blur" />
+            <filter id="wave-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
 
-          {/* Sine Wave 1 (Buyer Demand Curve) */}
+          {/* Sine Wave 1 (Emerald Buyer Demand Curve) */}
           <path
             d="M0,96 C240,180 480,20 720,120 C960,220 1200,60 1440,110 L1440,0 L0,0 Z"
-            fill="url(#aurora-grad-emerald)"
-            fillOpacity="0.08"
+            fill="url(#wave-grad-emerald)"
+            fillOpacity="0.15"
           />
           <path
             d="M0,96 C240,180 480,20 720,120 C960,220 1200,60 1440,110"
             fill="none"
-            stroke="url(#aurora-grad-emerald)"
+            stroke="url(#wave-grad-emerald)"
             strokeWidth="2.5"
-            filter="url(#aurora-glow)"
+            filter="url(#wave-glow)"
             className="animate-wave-flow-1"
           />
 
-          {/* Sine Wave 2 (Seller Supply Curve in Counter-Phase) */}
+          {/* Sine Wave 2 (Gold Seller Supply Curve in counter-phase) */}
           <path
             d="M0,160 C320,40 640,240 960,100 C1200,180 1360,90 1440,140"
             fill="none"
-            stroke="url(#aurora-grad-violet)"
+            stroke="url(#wave-grad-gold)"
             strokeWidth="2"
-            filter="url(#aurora-glow)"
+            filter="url(#wave-glow)"
             strokeDasharray="6 4"
             className="animate-wave-flow-2"
           />
         </svg>
       </div>
 
-      {/* Mid-Screen Subtle Drift Ribbon */}
-      <div className="absolute top-[40%] -left-[5%] -right-[5%] h-72 opacity-15 dark:opacity-25 pointer-events-none">
+      {/* Mid-Canvas Ambient Soundwave Ribbons */}
+      <div className="absolute top-[35%] -left-[10%] -right-[10%] h-80 opacity-20 dark:opacity-30 pointer-events-none">
         <svg
           viewBox="0 0 1600 240"
           className="w-full h-full preserve-3d"
@@ -122,59 +88,59 @@ export function WaveformBackground() {
             d="M0,120 C200,40 400,200 600,120 C800,40 1000,200 1200,120 C1400,40 1500,180 1600,120"
             fill="none"
             stroke="#10B981"
-            strokeWidth="1.6"
-            strokeOpacity="0.6"
+            strokeWidth="1.8"
+            strokeOpacity="0.5"
             className="animate-wave-flow-3"
           />
           <path
             d="M0,140 C220,210 440,70 660,140 C880,210 1100,70 1320,140 C1480,190 1550,110 1600,140"
             fill="none"
-            stroke="#8B5CF6"
-            strokeWidth="1.4"
-            strokeOpacity="0.5"
+            stroke="#F59E0B"
+            strokeWidth="1.5"
+            strokeOpacity="0.4"
             className="animate-wave-flow-1"
           />
         </svg>
       </div>
 
-      {/* Lower Harmonic Stream */}
-      <div className="absolute -bottom-10 left-0 right-0 h-96 opacity-20 dark:opacity-30 overflow-hidden">
+      {/* Lower Soundwave Floor / Bilateral Equilibrium Stream */}
+      <div className="absolute -bottom-10 left-0 right-0 h-96 opacity-25 dark:opacity-35 overflow-hidden">
         <svg
           viewBox="0 0 1440 320"
           className="w-full h-full preserve-3d"
           preserveAspectRatio="none"
         >
+          {/* Bottom Emerald Harmonic Gradient Fill */}
+          <path
+            d="M0,224 C288,140 576,280 864,192 C1152,104 1344,240 1440,210 L1440,320 L0,320 Z"
+            fill="url(#wave-grad-emerald)"
+            fillOpacity="0.12"
+          />
           <path
             d="M0,224 C288,140 576,280 864,192 C1152,104 1344,240 1440,210"
             fill="none"
-            stroke="url(#aurora-grad-emerald)"
+            stroke="url(#wave-grad-emerald)"
             strokeWidth="2.5"
-            filter="url(#aurora-glow)"
+            filter="url(#wave-glow)"
             className="animate-wave-flow-2"
           />
           <path
             d="M0,170 C360,260 720,120 1080,230 C1260,180 1380,250 1440,200"
             fill="none"
-            stroke="url(#aurora-grad-violet)"
+            stroke="url(#wave-grad-gold)"
             strokeWidth="1.8"
-            filter="url(#aurora-glow)"
+            filter="url(#wave-glow)"
             className="animate-wave-flow-3"
           />
         </svg>
       </div>
 
-      {/* =========================================================================
-          3. PULSING CELESTIAL EQUILIBRIUM NODES & STARDUST POINTS
-          ========================================================================= */}
-      <div className="absolute top-[18%] left-[22%] w-3 h-3 rounded-full bg-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.9)] animate-ping opacity-60" />
-      <div className="absolute top-[26%] right-[28%] w-2.5 h-2.5 rounded-full bg-violet-400/80 shadow-[0_0_18px_rgba(139,92,246,0.9)] animate-pulse opacity-70" />
-      <div className="absolute top-[48%] left-[38%] w-2 h-2 rounded-full bg-cyan-300/80 shadow-[0_0_14px_rgba(6,182,212,0.9)] animate-pulse opacity-60" />
-      <div className="absolute bottom-[28%] right-[35%] w-3 h-3 rounded-full bg-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.9)] animate-pulse opacity-65" />
-      <div className="absolute bottom-[20%] left-[18%] w-2.5 h-2.5 rounded-full bg-teal-300/80 shadow-[0_0_16px_rgba(52,211,153,0.9)] animate-ping opacity-55" />
+      {/* Pulsing Bilateral Equilibrium Nodes */}
+      <div className="absolute top-[18%] left-[25%] w-3 h-3 rounded-full bg-emerald-400/80 shadow-[0_0_16px_rgba(16,185,129,0.9)] animate-ping opacity-60" />
+      <div className="absolute top-[22%] right-[30%] w-2.5 h-2.5 rounded-full bg-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.9)] animate-pulse opacity-70" />
+      <div className="absolute bottom-[30%] left-[45%] w-3 h-3 rounded-full bg-teal-300/80 shadow-[0_0_18px_rgba(52,211,153,0.9)] animate-pulse opacity-60" />
 
-      {/* =========================================================================
-          4. ARCHITECTURAL RADIAL DOT MATRIX MESH
-          ========================================================================= */}
+      {/* Soft Ambient Depth Mesh Grid */}
       <div
         className="absolute inset-0 opacity-20 dark:opacity-30"
         style={{

@@ -30,7 +30,7 @@ export function PaymentModal({ deal, onClose, onConfirm, onOpenInvoice }) {
   if (!deal) return null;
   const ts = deal.termSheet;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (method === "upi" && !upiId.trim()) {
       setError("Enter a valid UPI ID.");
       return;
@@ -41,10 +41,14 @@ export function PaymentModal({ deal, onClose, onConfirm, onOpenInvoice }) {
     }
     setError("");
     setStep("processing");
-    setTimeout(() => {
-      onConfirm(deal.id, method);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      await onConfirm(deal.id, method);
       setStep("success");
-    }, 1400);
+    } catch (paymentError) {
+      setStep("select");
+      setError(paymentError?.message || "We could not record this payment. Please try again.");
+    }
   };
 
   return (
@@ -63,6 +67,25 @@ export function PaymentModal({ deal, onClose, onConfirm, onOpenInvoice }) {
               </button>
             </div>
             <div className="p-5 space-y-4">
+              <div className="grid grid-cols-3 gap-2" aria-label="Checkout progress">
+                {[
+                  ["1", "Review", true],
+                  ["2", "Pay", true],
+                  ["3", "Handover", false],
+                ].map(([number, label, current]) => (
+                  <div
+                    key={label}
+                    className={`rounded-lg border px-2 py-2 text-center text-[10px] font-semibold ${
+                      current
+                        ? "border-[var(--teal)]/35 bg-[var(--teal)]/10 text-[var(--teal)]"
+                        : "border-[var(--line)] bg-[var(--surface2)] text-[var(--mist-dim)]"
+                    }`}
+                  >
+                    <span className="mr-1 font-mono">{number}</span>{label}
+                  </div>
+                ))}
+              </div>
+
               <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface2)] border border-[var(--line)]">
                 <span className="text-xs text-[var(--mist)]">Amount due</span>
                 <span className="font-mono text-lg font-bold text-[var(--price)] tabular-nums">
@@ -201,6 +224,21 @@ export function PaymentModal({ deal, onClose, onConfirm, onOpenInvoice }) {
               </button>
             </div>
             <div className="p-5 space-y-4">
+              <div className="grid grid-cols-3 gap-2" aria-label="Checkout progress">
+                {[["1", "Review"], ["2", "Paid"], ["3", "Handover"]].map(([number, label], index) => (
+                  <div
+                    key={label}
+                    className={`rounded-lg border px-2 py-2 text-center text-[10px] font-semibold ${
+                      index < 2
+                        ? "border-[var(--green)]/35 bg-[var(--green)]/10 text-[var(--green)]"
+                        : "border-[var(--line)] bg-[var(--surface2)] text-[var(--mist-dim)]"
+                    }`}
+                  >
+                    <span className="mr-1 font-mono">{number}</span>{label}
+                  </div>
+                ))}
+              </div>
+
               <div className="rounded-xl border border-[var(--line)] divide-y divide-[var(--line-soft)] overflow-hidden">
                 <SummaryRow label="Product" value={deal.product.name} />
                 <SummaryRow label="Amount paid" value={fmtINR(ts.unitPrice)} accent />
@@ -210,7 +248,7 @@ export function PaymentModal({ deal, onClose, onConfirm, onOpenInvoice }) {
                 />
               </div>
               <p className="text-xs text-[var(--mist)] leading-relaxed">
-                {deal.sellerName} has been notified. Order fulfillment begins now.
+                Payment is recorded in this deal and {deal.sellerName} has been notified. Next, arrange inspection and complete the OTP handover.
               </p>
             </div>
             <div className="p-5 border-t border-[var(--line)] flex items-center gap-2">

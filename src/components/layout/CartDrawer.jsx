@@ -74,6 +74,11 @@ export function CartDrawer({ open, onClose, items, onRemove, onClear, onGoToCata
 
         {items.length > 0 && (
           <div className="p-4 border-t border-[var(--line)] shrink-0 space-y-3">
+            <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface2)] p-2 text-center text-[10px] font-semibold text-[var(--mist)]">
+              <span>1. Choose item</span>
+              <span>2. Agree price</span>
+              <span>3. Pay safely</span>
+            </div>
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wide text-[var(--mist)]">Subtotal &middot; list price</span>
               <span className="font-mono text-lg font-bold text-[var(--price)] tabular-nums">{fmtINR(subtotal)}</span>

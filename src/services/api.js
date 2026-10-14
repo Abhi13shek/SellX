@@ -101,6 +101,22 @@ export const api = {
     return res.data;
   },
 
+  async recordPayment(dealId, method) {
+    const res = await request(`/deals/${dealId}/payment`, {
+      method: "POST",
+      body: JSON.stringify({ method }),
+    });
+    return res.data;
+  },
+
+  async verifyHandoverOtp(dealId, otp) {
+    const res = await request(`/deals/${dealId}/handover/verify`, {
+      method: "POST",
+      body: JSON.stringify({ otp }),
+    });
+    return res.data;
+  },
+
   async submitCounter(dealId, { sender, unitPrice, leadTimeDays, note }) {
     const res = await request(`/deals/${dealId}/counter`, {
       method: "POST",
@@ -155,6 +171,22 @@ export const api = {
     const res = await request("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
+    });
+    return res.data;
+  },
+
+  async requestPasswordReset({ email }) {
+    const res = await request("/auth/password-reset/request", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    return res.data;
+  },
+
+  async resetPassword({ email, code, password }) {
+    const res = await request("/auth/password-reset/confirm", {
+      method: "POST",
+      body: JSON.stringify({ email, code, password }),
     });
     return res.data;
   },

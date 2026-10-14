@@ -54,6 +54,7 @@ export const ProductModel = {
       name: productData.name,
       category: productData.category || "Mobile",
       image: productData.image || null,
+      images: Array.isArray(productData.images) ? productData.images.filter(Boolean) : null,
       basePrice,
       cost: Number(productData.cost || basePrice * 0.75),
       minAcceptablePrice,

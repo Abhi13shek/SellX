@@ -10,31 +10,20 @@ import {
   ShieldCheck,
   XCircle,
   Timer,
-  IndianRupee,
   Clock,
   CheckCircle2,
   ArrowLeftRight,
   Sparkles,
   Gauge,
-  Shield,
   PanelLeftClose,
   PanelLeftOpen,
   TrendingDown,
-  TrendingUp,
-  Percent,
-  Check,
-  Info,
   CreditCard,
-  Lock,
-  Printer,
-  FileCheck,
 } from "lucide-react";
-import { CategoryIcon } from "../common/Icons.jsx";
 import { ChatMessage } from "./ChatMessage.jsx";
 import { TermStat } from "../common/MiniStat.jsx";
-import { PrimaryButton, GhostButton } from "../common/Buttons.jsx";
+import { PrimaryButton } from "../common/Buttons.jsx";
 import { FieldLabel } from "../common/FieldLabel.jsx";
-import { Badge } from "../common/Badge.jsx";
 import { BuyerCopilot } from "../catalog/BuyerCopilot.jsx";
 import { SellerCopilot } from "../seller/SellerCopilot.jsx";
 import { useCountdown } from "../../hooks/useCountdown.js";
@@ -53,14 +42,19 @@ export function DealRoomActive({
   onOpenAccept,
   onDecline,
   onOpenPayment,
-  onOpenInvoice,
+  onVerifyHandoverOtp,
 }) {
   const [chatText, setChatText] = useState("");
   const [counterNote, setCounterNote] = useState("");
-  const [copilotOpen, setCopilotOpen] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [counterOpen, setCounterOpen] = useState(false);
+  const [handoverOtp, setHandoverOtp] = useState("");
+  const [handoverOtpError, setHandoverOtpError] = useState("");
+  const [verifyingHandover, setVerifyingHandover] = useState(false);
 
   const scrollRef = useRef(null);
+  const chatInputRef = useRef(null);
 
   const ts = deal?.termSheet || { unitPrice: 10000, leadTimeDays: 3, status: "proposed" };
   const [unitPrice, setUnitPrice] = useState(ts.unitPrice);
@@ -79,7 +73,10 @@ export function DealRoomActive({
 
   const locked = ts.status === "locked";
   const declined = ts.status === "declined";
-  const disabled = locked || declined;
+  const completed = ts.status === "completed";
+  const dealAgreed = locked || completed;
+  const disabled = dealAgreed || declined;
+  const conversationClosed = completed || declined;
 
   const product = deal?.product || { name: "Pre-Owned Item", basePrice: 10000, cost: 7500, category: "Mobile" };
   const cost = product.cost != null ? product.cost : product.basePrice * 0.75;
@@ -92,6 +89,7 @@ export function DealRoomActive({
   const savingsPct = product.basePrice > 0 ? (savings / product.basePrice) * 100 : 0;
 
   const handleSend = () => {
+    if (conversationClosed) return;
     if (!chatText.trim()) return;
     const textToSend = chatText.trim();
     if (typeof onSendMessage === "function") {
@@ -110,6 +108,7 @@ export function DealRoomActive({
         onSendMessage(counterNote.trim());
         setCounterNote("");
       }
+      setCounterOpen(false);
     }
   };
 
@@ -123,22 +122,71 @@ export function DealRoomActive({
     setUnitPrice(mid);
   };
 
+  const focusMessage = () => {
+    chatInputRef.current?.focus();
+    chatInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const verifyHandover = async () => {
+    const otp = handoverOtp.trim();
+    if (!/^\d{4}$/.test(otp)) {
+      setHandoverOtpError("Enter the 4-digit code shared by the buyer.");
+      return;
+    }
+    if (!onVerifyHandoverOtp) return;
+    setVerifyingHandover(true);
+    setHandoverOtpError("");
+    try {
+      await onVerifyHandoverOtp(deal.id, otp);
+    } catch (error) {
+      setHandoverOtpError(error?.message || "We could not verify that code. Please try again.");
+    } finally {
+      setVerifyingHandover(false);
+    }
+  };
+
   // Find latest offer message index
   const latestOfferIndex = deal?.messages
     ? deal.messages.map((m) => m.type).lastIndexOf("offer")
     : -1;
+  const latestOffer = [...(deal?.messages || [])].reverse().find((message) => message.type === "offer");
+  const needsMyResponse = !disabled && latestOffer?.sender && latestOffer.sender !== role && latestOffer.offer?.status === "proposed";
+  const nextStep = completed
+    ? "Deal complete"
+    : declined
+    ? "This offer is closed"
+    : locked && ts.paymentStatus === "paid"
+    ? "Handover is ready"
+    : locked
+    ? role === "buyer"
+      ? "Pay safely to continue"
+      : "Waiting for the buyer to pay"
+    : needsMyResponse
+    ? "Review their latest offer"
+    : "Waiting for their reply";
 
-  // Progression Stepper determination
-  const steps = [
-    { label: "1. Request Sent", done: true },
-    { label: "2. Bargaining", done: deal?.messages?.length > 1, active: !locked && !declined },
-    { label: "3. Terms Agreed", done: locked, active: locked && ts.paymentStatus !== "paid" },
-    { label: "4. Escrow Paid", done: ts.paymentStatus === "paid", active: ts.paymentStatus === "paid" },
+  const nextStepDescription = completed
+    ? "The handover OTP was verified. This agreement is closed successfully."
+    : declined
+    ? "This negotiation is closed. You can return to your offers whenever you are ready."
+    : locked && ts.paymentStatus === "paid"
+    ? "Arrange the handover, inspect the item, then use the one-time passcode."
+    : locked
+    ? role === "buyer"
+      ? "Your price is agreed. Complete the secure payment to move to handover."
+      : "The price is agreed. The buyer needs to complete payment before handover."
+    : needsMyResponse
+    ? "Choose to accept, decline, or send a counter offer."
+    : "You can wait for a reply, or send a message or counter offer to keep things moving.";
+  const handoverSteps = [
+    { label: "Agree price", complete: dealAgreed, active: !dealAgreed && !declined },
+    { label: "Secure payment", complete: dealAgreed && ts.paymentStatus === "paid", active: locked && ts.paymentStatus !== "paid" },
+    { label: "Inspect & handover", complete: completed, active: locked && ts.paymentStatus === "paid" },
   ];
 
   return (
     <div className="sellx-rise">
-      {/* Top Breadcrumbs & Progression Bar */}
+      {/* A simple status header keeps the next action obvious. */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--line)]">
         <div className="flex items-center gap-2">
           <button
@@ -146,40 +194,28 @@ export function DealRoomActive({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--mist)] hover:text-[var(--paper)] hover:bg-[var(--surface2)] hover:border-[var(--teal)]/40 shrink-0 transition-all text-xs font-semibold shadow-sm"
           >
             <ArrowLeft size={14} />
-            <span>All Conversations</span>
+            <span>All offers</span>
           </button>
 
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--mist)] hover:text-[var(--paper)] text-xs font-medium transition-colors"
-            title={sidebarOpen ? "Hide Chat Sidebar" : "Show Chat Sidebar"}
+            title={sidebarOpen ? "Hide conversations list" : "Show conversations list"}
           >
             {sidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
-            <span>{sidebarOpen ? "Hide List" : "Show List"}</span>
+            <span>{sidebarOpen ? "Hide list" : "Show list"}</span>
           </button>
         </div>
 
-        {/* Stepper Progression */}
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 sm:pb-0">
-          {steps.map((step, idx) => (
-            <React.Fragment key={step.label}>
-              <div
-                className={`flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap px-2.5 py-1 rounded-full border transition-colors ${
-                  step.done
-                    ? "bg-[var(--green)]/12 border-[var(--green)]/30 text-[var(--green)]"
-                    : step.active
-                    ? "bg-[var(--teal)]/12 border-[var(--teal)]/30 text-[var(--teal)]"
-                    : "bg-[var(--surface2)] border-[var(--line)] text-[var(--mist-dim)]"
-                }`}
-              >
-                {step.done ? <Check size={11} strokeWidth={3} /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
-                {step.label}
-              </div>
-              {idx < steps.length - 1 && (
-                <div className="w-2 sm:w-3 h-px bg-[var(--line)] shrink-0" />
-              )}
-            </React.Fragment>
-          ))}
+        <div className={`inline-flex items-center gap-2 self-start sm:self-auto rounded-full border px-3 py-1.5 text-xs font-semibold ${
+          declined
+            ? "border-[var(--red)]/30 bg-[var(--red)]/10 text-[var(--red)]"
+            : dealAgreed
+            ? "border-[var(--green)]/30 bg-[var(--green)]/10 text-[var(--green)]"
+            : "border-[var(--teal)]/30 bg-[var(--teal)]/10 text-[var(--teal)]"
+        }`}>
+          {dealAgreed ? <CheckCircle2 size={14} /> : declined ? <XCircle size={14} /> : <ArrowLeftRight size={14} />}
+          <span>Next: {nextStep}</span>
         </div>
       </div>
 
@@ -239,8 +275,8 @@ export function DealRoomActive({
           </div>
         )}
 
-        {/* CENTER / MAIN CHAT WORKSPACE (6 or 7 cols) */}
-        <div className={`${sidebarOpen && deals.length > 1 ? "lg:col-span-5" : "lg:col-span-7"} flex flex-col gap-4`}>
+        {/* CENTER / MAIN CHAT WORKSPACE */}
+        <div className={`${sidebarOpen && deals.length > 1 ? "lg:col-span-5" : "lg:col-span-8"} flex flex-col gap-4`}>
           {/* Item Banner Card with Photo */}
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 flex items-center justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-3 min-w-0">
@@ -270,7 +306,7 @@ export function DealRoomActive({
 
             <div className="text-right shrink-0">
               <span className="text-[10px] uppercase font-semibold text-[var(--mist-dim)] block">
-                Offer Price
+                Current offer
               </span>
               <span className="font-mono text-base sm:text-lg font-bold text-[var(--price)] tabular-nums">
                 {fmtINR(ts.unitPrice || product.basePrice)}
@@ -285,12 +321,17 @@ export function DealRoomActive({
               <div className="flex items-center gap-2">
                 <MessageSquare size={14} className="text-[var(--teal)]" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-[var(--paper)]">
-                  Live Negotiation Stream
+                  Conversation
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-[var(--mist-dim)] px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--line)]">
-                {deal?.messages?.length || 0} messages
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-[var(--green)]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--green)]" /> Shared deal
+                </span>
+                <span className="text-[11px] font-mono text-[var(--mist-dim)] px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--line)]">
+                  {deal?.messages?.length || 0} messages
+                </span>
+              </div>
             </div>
 
             {/* Messages Scroll Area */}
@@ -308,41 +349,21 @@ export function DealRoomActive({
               ))}
             </div>
 
-            {/* Quick Action / Reply Shortcut Chips */}
-            <div className="px-3 pt-2.5 pb-1.5 border-t border-[var(--line)] bg-[var(--surface2)]/60 flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px]">
-              <span className="text-[10px] uppercase font-bold text-[var(--mist-dim)] shrink-0 mr-1">Quick:</span>
-              {[
-                "Can pay immediately via UPI ⚡",
-                "Is original box included?",
-                "Can we do meetup today?",
-                "Lowest floor price?",
-              ].map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => {
-                    if (onSendMessage) onSendMessage(chip, deal?.id);
-                  }}
-                  className="px-2.5 py-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface3)] hover:border-emerald-500/40 text-[var(--paper)] whitespace-nowrap transition-all text-[11px] font-medium shrink-0 cursor-pointer shadow-2xs active:scale-95"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-
             {/* Input Bar */}
             <div className="p-3 border-t border-[var(--line)] flex items-center gap-2 bg-[var(--surface2)]/40 rounded-b-2xl">
               <input
+                ref={chatInputRef}
                 value={chatText}
                 onChange={(e) => setChatText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Type a message or counter note..."
-                className="flex-1 bg-[var(--surface)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--paper)] outline-none focus:border-[var(--teal)] placeholder:text-[var(--mist-dim)] transition-colors shadow-inner"
+                disabled={conversationClosed}
+                placeholder={completed ? "This deal is completed." : declined ? "This negotiation is closed." : "Type a message or counter note..."}
+                className="flex-1 bg-[var(--surface)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--paper)] outline-none focus:border-[var(--teal)] placeholder:text-[var(--mist-dim)] transition-colors shadow-inner disabled:cursor-not-allowed disabled:opacity-60"
               />
               <button
                 onClick={handleSend}
-                disabled={!chatText.trim()}
-                className="w-10 h-10 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] flex items-center justify-center disabled:opacity-40 hover:bg-[var(--teal-dim)] transition-all shrink-0 shadow-sm active:scale-95 cursor-pointer"
+                disabled={conversationClosed || !chatText.trim()}
+                className="w-10 h-10 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] flex items-center justify-center disabled:opacity-40 hover:bg-[var(--teal-dim)] transition-all shrink-0 shadow-sm active:scale-95"
                 title="Send message"
               >
                 <Send size={15} />
@@ -351,28 +372,119 @@ export function DealRoomActive({
           </div>
         </div>
 
-        {/* RIGHT: TERM SHEET + INTERACTIVE COUNTER + COPILOT (4 or 5 cols) */}
-        <div className={`${sidebarOpen && deals.length > 1 ? "lg:col-span-4" : "lg:col-span-5"} space-y-4`}>
+        {/* RIGHT: concise deal details and optional decision tools */}
+        <div className="lg:col-span-4 space-y-4">
+          {/* A single, plain-language decision card keeps the important action in one place. */}
+          <div className="rounded-2xl border border-[var(--teal)]/30 bg-[var(--teal)]/5 p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--teal)]/15 text-[var(--teal)]">
+                {dealAgreed ? <ShieldCheck size={16} /> : declined ? <XCircle size={16} /> : <ArrowLeftRight size={16} />}
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--teal)]">Your next step</span>
+                <h3 className="mt-0.5 font-display text-sm font-bold text-[var(--paper)]">{nextStep}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--mist)]">{nextStepDescription}</p>
+              </div>
+            </div>
+
+            {needsMyResponse && (
+              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => onOpenAccept && onOpenAccept(deal.id)}
+                  className="rounded-xl bg-[var(--teal)] px-3 py-2.5 text-xs font-semibold text-[var(--on-teal)] transition-colors hover:bg-[var(--teal-dim)]"
+                >
+                  Accept offer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCounterOpen(true);
+                    setTimeout(() => document.getElementById(`counter-offer-${deal.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+                  }}
+                  className="rounded-xl border border-[var(--teal)]/40 bg-[var(--surface)] px-3 py-2.5 text-xs font-semibold text-[var(--teal)] transition-colors hover:bg-[var(--teal)]/10"
+                >
+                  Counter offer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDecline && onDecline(deal.id, role)}
+                  className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-xs font-semibold text-[var(--mist)] transition-colors hover:border-[var(--red)]/40 hover:text-[var(--red)]"
+                >
+                  Decline
+                </button>
+              </div>
+            )}
+
+            {locked && role === "buyer" && ts.paymentStatus !== "paid" && (
+              <button
+                type="button"
+                onClick={() => onOpenPayment && onOpenPayment(deal.id)}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--teal)] px-3 py-2.5 text-xs font-semibold text-[var(--on-teal)] transition-colors hover:bg-[var(--teal-dim)]"
+              >
+                <CreditCard size={14} /> Complete secure payment
+              </button>
+            )}
+
+            {!disabled && !needsMyResponse && (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={focusMessage}
+                  className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-xs font-semibold text-[var(--paper)] transition-colors hover:border-[var(--teal)]/40"
+                >
+                  Send message
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCounterOpen(true)}
+                  className="rounded-xl border border-[var(--teal)]/40 bg-[var(--surface)] px-3 py-2.5 text-xs font-semibold text-[var(--teal)] transition-colors hover:bg-[var(--teal)]/10"
+                >
+                  Make counter
+                </button>
+              </div>
+            )}
+          </div>
+
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--paper)]">Safe handover journey</h3>
+                <p className="mt-0.5 text-[11px] text-[var(--mist)]">Complete each step before sharing the OTP.</p>
+              </div>
+              <ShieldCheck size={16} className="text-[var(--teal)]" />
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-1">
+              {handoverSteps.map((step, index) => (
+                <div key={step.label} className="relative text-center">
+                  {index < handoverSteps.length - 1 && <span className="absolute left-[60%] right-[-40%] top-3 h-px bg-[var(--line)]" />}
+                  <span className={`relative z-10 mx-auto flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold ${step.complete ? "border-[var(--green)] bg-[var(--green)]/15 text-[var(--green)]" : step.active ? "border-[var(--teal)] bg-[var(--teal)]/12 text-[var(--teal)]" : "border-[var(--line)] bg-[var(--surface2)] text-[var(--mist-dim)]"}`}>
+                    {step.complete ? "✓" : index + 1}
+                  </span>
+                  <span className={`mt-1.5 block text-[10px] font-semibold ${step.active ? "text-[var(--paper)]" : "text-[var(--mist)]"}`}>{step.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* Term Sheet / Handover Agreement Card */}
-          <div className={`rounded-2xl border bg-[var(--surface)] p-4 sm:p-5 relative overflow-hidden shadow-sm transition-all ${
-            !disabled ? "border-emerald-500/50 pulse-ring" : "border-[var(--line)]"
-          }`}>
-            {locked && (
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:p-5 relative overflow-hidden shadow-sm">
+            {dealAgreed && (
               <div className="sellx-stamp absolute top-3 right-3 border-2 border-[var(--green)] text-[var(--green)] rounded-lg px-2.5 py-1 text-[11px] font-display font-bold tracking-widest -rotate-6 bg-[var(--green)]/10">
-                AGREED
+                {completed ? "COMPLETED" : "AGREED"}
               </div>
             )}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <FileText size={14} className="text-[var(--mist)]" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-[var(--mist)]">
-                  {locked ? "Handover Agreement" : "Active Bargain Terms"}
+                  {dealAgreed ? (completed ? "Deal completed" : "Deal confirmed") : "Deal details"}
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <TermStat label="Agreed Price" value={fmtINR(ts.unitPrice)} accent />
+              <TermStat label={dealAgreed ? "Agreed price" : "Current offer"} value={fmtINR(ts.unitPrice)} accent />
               <TermStat label="Handover Mode" value={deal?.handoverType || ts.handoverType || "Local Meetup"} />
             </div>
 
@@ -384,8 +496,8 @@ export function DealRoomActive({
               </span>
             </div>
 
-            {/* Handover OTP Passcode Box if Locked */}
-            {locked && (
+            {/* Only the buyer sees the code; the seller must enter it to verify handover. */}
+            {dealAgreed && role === "buyer" && !completed && (
               <div className="mt-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-1.5">
                 <span className="text-[10px] uppercase font-extrabold tracking-widest text-emerald-600 dark:text-emerald-400 block">
                   🔒 Handover Passcode (OTP)
@@ -393,16 +505,53 @@ export function DealRoomActive({
                 <div className="font-mono text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-widest">
                   {deal?.handoverOtp || ts.handoverOtp || "8429"}
                 </div>
-                <p className="text-[11px] text-[var(--mist)] leading-snug">
-                  {role === "buyer"
-                    ? "Share this 4-digit passcode with the seller ONLY after physical inspection."
-                    : "Ask buyer for this 4-digit passcode during meetup to verify handover."}
-                </p>
+                <p className="text-[11px] text-[var(--mist)] leading-snug">Share this 4-digit passcode with the seller ONLY after physical inspection.</p>
+              </div>
+            )}
+
+            {locked && role === "seller" && ts.paymentStatus === "paid" && (
+              <div className="mt-3 rounded-xl border border-[var(--green)]/30 bg-[var(--green)]/10 p-3.5">
+                <span className="block text-[10px] font-extrabold uppercase tracking-widest text-[var(--green)]">Verify buyer handover OTP</span>
+                <p className="mt-1 text-[11px] leading-snug text-[var(--mist)]">Inspect the item first, then enter the 4-digit code provided by the buyer.</p>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    value={handoverOtp}
+                    onChange={(event) => {
+                      setHandoverOtp(event.target.value.replace(/\D/g, "").slice(0, 4));
+                      setHandoverOtpError("");
+                    }}
+                    onKeyDown={(event) => event.key === "Enter" && verifyHandover()}
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="Enter OTP"
+                    aria-label="Buyer handover OTP"
+                    className="min-w-0 flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-center font-mono text-base font-bold tracking-[0.35em] text-[var(--paper)] outline-none focus:border-[var(--teal)]"
+                  />
+                  <button
+                    type="button"
+                    onClick={verifyHandover}
+                    disabled={verifyingHandover || handoverOtp.length !== 4}
+                    className="shrink-0 rounded-xl bg-[var(--teal)] px-3 py-2.5 text-xs font-semibold text-[var(--on-teal)] shadow-sm transition-all hover:bg-[var(--teal-dim)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {verifyingHandover ? "Verifying…" : "Verify & close"}
+                  </button>
+                </div>
+                {handoverOtpError && <p className="mt-2 text-[11px] font-medium text-[var(--red)]">{handoverOtpError}</p>}
+              </div>
+            )}
+
+            {completed && (
+              <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-[var(--green)]/30 bg-[var(--green)]/10 p-3 text-xs font-semibold text-[var(--green)]">
+                <CheckCircle2 size={15} /> Handover verified · Deal closed successfully
               </div>
             )}
 
             <div className="mt-3.5 flex items-center justify-between pt-3 border-t border-[var(--line)]/50">
-              {locked ? (
+              {completed ? (
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--green)]">
+                  <CheckCircle2 size={15} /> Deal completed
+                </span>
+              ) : locked ? (
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--green)]">
                   <ShieldCheck size={15} /> Deal agreed &amp; OTP active
                 </span>
@@ -427,96 +576,102 @@ export function DealRoomActive({
             </div>
 
             {/* Escrow Lock Banner / 1-Click Pay */}
-            {locked && (
-              <div className="mt-4 pt-3 border-t border-[var(--line)] space-y-2">
-                {role === "buyer" && (
-                  ts.paymentStatus === "paid" ? (
-                    <div className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--green)]/10 border border-[var(--green)]/30 text-xs font-semibold text-[var(--green)]">
-                      <CheckCircle2 size={14} /> Payment Complete · Escrow Held Safely
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => onOpenPayment && onOpenPayment(deal.id)}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-md active:scale-95 cursor-pointer"
-                    >
-                      <CreditCard size={14} /> Pay {fmtINR(ts.unitPrice)} via Safe Escrow
-                    </button>
-                  )
-                )}
-
-                {role === "seller" && (
-                  <div
-                    className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold ${
-                      ts.paymentStatus === "paid"
-                        ? "bg-[var(--green)]/10 border-[var(--green)]/30 text-[var(--green)]"
-                        : "bg-[var(--surface2)] border-[var(--line)] text-[var(--mist)]"
-                    }`}
-                  >
-                    {ts.paymentStatus === "paid" ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-                    {ts.paymentStatus === "paid" ? "Buyer has deposited funds in Escrow" : "Buyer preparing payment / local cash"}
+            {locked && role === "buyer" && (
+              <div className="mt-4 pt-3 border-t border-[var(--line)]">
+                {ts.paymentStatus === "paid" ? (
+                  <div className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--green)]/10 border border-[var(--green)]/30 text-xs font-semibold text-[var(--green)]">
+                    <CheckCircle2 size={14} /> Payment Complete · Escrow Held Safely
                   </div>
-                )}
-
-                {onOpenInvoice && (
+                ) : (
                   <button
-                    onClick={() => onOpenInvoice(deal)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[var(--line)] bg-[var(--surface2)] hover:bg-[var(--surface3)] text-[var(--paper)] text-xs font-semibold transition-all shadow-xs cursor-pointer"
-                    title="View official digital contract, tax invoice, and Bill of Sale"
+                    onClick={() => onOpenPayment && onOpenPayment(deal.id)}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[var(--teal)] text-[var(--on-teal)] text-xs font-semibold hover:bg-[var(--teal-dim)] transition-all shadow-md active:scale-95"
                   >
-                    <FileCheck size={14} className="text-emerald-500" />
-                    <span>View Recommerce Bill of Sale &amp; Invoice</span>
+                    <CreditCard size={14} /> Pay {fmtINR(ts.unitPrice)} via Safe Escrow
                   </button>
                 )}
               </div>
             )}
+
+            {locked && role === "seller" && (
+              <div className="mt-4 pt-3 border-t border-[var(--line)]">
+                <div
+                  className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold ${
+                    ts.paymentStatus === "paid"
+                      ? "bg-[var(--green)]/10 border-[var(--green)]/30 text-[var(--green)]"
+                      : "bg-[var(--surface2)] border-[var(--line)] text-[var(--mist)]"
+                  }`}
+                >
+                  {ts.paymentStatus === "paid" ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                  {ts.paymentStatus === "paid" ? "Buyer has deposited funds in Escrow" : "Buyer preparing payment / local cash"}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Interactive Counter Proposal Tool */}
+          {/* Counter tools stay out of the way until the user chooses to counter. */}
           {!disabled && (
-            <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
+            <div id={`counter-offer-${deal.id}`} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:p-5 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setCounterOpen((open) => !open)}
+                className="flex w-full items-center justify-between gap-3 text-left"
+                aria-expanded={counterOpen}
+              >
                 <div className="flex items-center gap-2">
                   <ArrowLeftRight size={14} className="text-[var(--teal)]" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[var(--paper)]">
-                    Submit Counter-Offer
-                  </span>
+                  <div>
+                    <span className="block text-xs font-semibold text-[var(--paper)]">Make a counter offer</span>
+                    <span className="mt-0.5 block text-[11px] text-[var(--mist)]">Choose a new price and optional message.</span>
+                  </div>
                 </div>
-                {role === "buyer" && savings > 0 && (
-                  <span className="text-[11px] font-mono text-[var(--green)] font-semibold flex items-center gap-1">
-                    <TrendingDown size={11} /> Save {fmtINR(savings)} ({savingsPct.toFixed(1)}%)
-                  </span>
-                )}
-              </div>
+                <ChevronDown size={16} className={`shrink-0 text-[var(--mist)] transition-transform ${counterOpen ? "rotate-180" : ""}`} />
+              </button>
 
-              {/* Quick Preset Buttons */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-[var(--mist-dim)] mr-1">Quick:</span>
-                <button
-                  type="button"
-                  onClick={() => applyPresetDiscount(0.05)}
-                  className="px-2.5 py-1 rounded-lg bg-[var(--surface2)] hover:bg-[var(--surface3)] border border-[var(--line)] text-[11px] font-mono text-[var(--paper)] transition-colors"
-                >
-                  -5%
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyPresetDiscount(0.10)}
-                  className="px-2.5 py-1 rounded-lg bg-[var(--surface2)] hover:bg-[var(--surface3)] border border-[var(--line)] text-[11px] font-mono text-[var(--paper)] transition-colors"
-                >
-                  -10%
-                </button>
-                <button
-                  type="button"
-                  onClick={applyMidpoint}
-                  className="px-2.5 py-1 rounded-lg bg-[var(--surface2)] hover:bg-[var(--surface3)] border border-[var(--line)] text-[11px] font-mono text-[var(--paper)] transition-colors"
-                >
-                  Halfway
-                </button>
-              </div>
+              {counterOpen && (
+                <div className="mt-4 space-y-4 border-t border-[var(--line)] pt-4 sellx-rise">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--mist)]">Your proposal</span>
+                    {role === "buyer" && savings > 0 && (
+                      <span className="text-[11px] font-mono text-[var(--green)] font-semibold flex items-center gap-1">
+                        <TrendingDown size={11} /> Save {fmtINR(savings)} ({savingsPct.toFixed(1)}%)
+                      </span>
+                    )}
+                  </div>
 
-              {/* Price Slider */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] text-[var(--mist-dim)] mr-1">Suggestions:</span>
+                    <button
+                      type="button"
+                      onClick={() => applyPresetDiscount(0.05)}
+                      className="px-2.5 py-1 rounded-lg bg-[var(--surface2)] hover:bg-[var(--surface3)] border border-[var(--line)] text-[11px] font-mono text-[var(--paper)] transition-colors"
+                    >
+                      5% below list
+                    </button>
+                    <button
+                      type="button"
+                      onClick={applyMidpoint}
+                      className="px-2.5 py-1 rounded-lg bg-[var(--surface2)] hover:bg-[var(--surface3)] border border-[var(--line)] text-[11px] font-mono text-[var(--paper)] transition-colors"
+                    >
+                      Meet halfway
+                    </button>
+                  </div>
+
+              {/* A direct price field makes the counter amount explicit; the slider remains for quick adjustments. */}
               <div>
-                <FieldLabel hint={fmtINR(unitPrice)}>Proposed Unit Price</FieldLabel>
+                <FieldLabel>Enter your counter price (₹)</FieldLabel>
+                <input
+                  type="number"
+                  min="0"
+                  step="250"
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(Number(e.target.value) || 0)}
+                  className="mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface2)] px-3 py-2.5 font-mono text-base font-bold text-[var(--paper)] outline-none transition-colors focus:border-[var(--teal)]"
+                />
+              </div>
+
+              <div>
+                <FieldLabel hint={fmtINR(unitPrice)}>Fine-tune price</FieldLabel>
                 <input
                   type="range"
                   min={Math.max(500, Math.round(cost * 0.6))}
@@ -530,7 +685,7 @@ export function DealRoomActive({
 
               {/* Lead Time */}
               <div>
-                <FieldLabel>Expedited Lead Time (Days)</FieldLabel>
+                <FieldLabel>Pickup or delivery window (days)</FieldLabel>
                 <input
                   type="number"
                   min="1"
@@ -543,7 +698,7 @@ export function DealRoomActive({
 
               {/* Accompanying Note */}
               <div>
-                <FieldLabel>Note with proposal (Optional)</FieldLabel>
+                <FieldLabel>Message with offer (optional)</FieldLabel>
                 <input
                   type="text"
                   value={counterNote}
@@ -562,32 +717,14 @@ export function DealRoomActive({
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="grid grid-cols-1 gap-2 pt-1">
-                <PrimaryButton
-                  tone="teal"
-                  icon={ArrowLeftRight}
-                  onClick={handleProposeCounter}
-                >
-                  Propose Counter {fmtINR(unitPrice)}
-                </PrimaryButton>
-                <div className="grid grid-cols-2 gap-2">
-                  <PrimaryButton
-                    tone="green"
-                    icon={ShieldCheck}
-                    onClick={() => onOpenAccept && onOpenAccept(deal.id)}
-                  >
-                    Accept &amp; Lock
+                  <PrimaryButton tone="teal" icon={ArrowLeftRight} className="w-full" onClick={handleProposeCounter}>
+                    Send counter offer {fmtINR(unitPrice)}
                   </PrimaryButton>
-                  <GhostButton
-                    tone="danger"
-                    icon={XCircle}
-                    onClick={() => onDecline && onDecline(deal.id, role)}
-                  >
-                    Decline Deal
-                  </GhostButton>
+                  <p className="text-center text-[11px] text-[var(--mist)]">
+                    Accept or decline the newest offer directly in the conversation.
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -598,8 +735,7 @@ export function DealRoomActive({
               className="w-full flex items-center justify-between px-4 py-3 hover:bg-[var(--surface2)]/40 transition-colors"
             >
               <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--paper)]">
-                <Sparkles size={14} className="text-[var(--teal)]" /> {role === "buyer" ? "Buyer" : "Seller"} Copilot
-                <Badge tone="neutral">AI Advisor</Badge>
+                <Sparkles size={14} className="text-[var(--teal)]" /> Need help deciding?
               </span>
               <ChevronRight
                 size={15}

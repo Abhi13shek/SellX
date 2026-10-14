@@ -11,12 +11,14 @@ export function RFQModal({ product, onClose, onSubmit, initialPrice = null }) {
   );
   const [handoverType, setHandoverType] = useState("Local Meetup");
   const [notes, setNotes] = useState("Can pick up today and pay via UPI upon inspection!");
+  const [offerError, setOfferError] = useState("");
 
   useEffect(() => {
     if (product) {
       setTargetPrice(initialPrice ? initialPrice.toString() : Math.round(product.basePrice * 0.9).toString());
       setHandoverType("Local Meetup");
       setNotes("Can pick up today and pay via UPI upon inspection!");
+      setOfferError("");
     }
   }, [product, initialPrice]);
 
@@ -27,6 +29,22 @@ export function RFQModal({ product, onClose, onSubmit, initialPrice = null }) {
 
   const setQuickDiscount = (pct) => {
     setTargetPrice(Math.round(product.basePrice * pct).toString());
+    setOfferError("");
+  };
+
+  const submitOffer = () => {
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      setOfferError("Enter an offer amount greater than ₹0 to continue.");
+      return;
+    }
+
+    onSubmit({
+      product,
+      targetPrice: currentPrice,
+      leadTime: 1,
+      handoverType,
+      notes,
+    });
   };
 
   return (
@@ -49,10 +67,15 @@ export function RFQModal({ product, onClose, onSubmit, initialPrice = null }) {
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Asking Price vs Quick Discounts */}
+          {/* Offer price */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <FieldLabel hint={`Asking ${fmtINR(product.basePrice)}`}>Your Offer Price (₹)</FieldLabel>
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <FieldLabel>Enter your offer</FieldLabel>
+                <p id="offer-price-help" className="mt-1 text-[11px] text-[var(--mist)]">
+                  Type the amount you want to pay. Asking price: {fmtINR(product.basePrice)}.
+                </p>
+              </div>
               {discountPct > 0 && (
                 <span className="text-[11px] font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
                   {discountPct}% off asking
@@ -60,30 +83,50 @@ export function RFQModal({ product, onClose, onSubmit, initialPrice = null }) {
               )}
             </div>
 
-            <div className="flex items-center gap-2 bg-[var(--surface2)] border border-[var(--line)] rounded-xl px-3 focus-within:border-[var(--teal)]">
-              <IndianRupee size={16} className="text-[var(--mist)]" />
+            <label
+              htmlFor="offer-price"
+              className="flex items-center gap-3 bg-[var(--surface2)] border border-[var(--line)] rounded-xl px-4 focus-within:border-[var(--teal)] focus-within:ring-2 focus-within:ring-[var(--teal)]/15 transition-all cursor-text"
+            >
+              <IndianRupee size={19} className="text-[var(--teal)] shrink-0" />
               <input
+                id="offer-price"
+                name="offerPrice"
                 type="number"
                 min="0"
+                step="1"
+                inputMode="numeric"
                 value={targetPrice}
-                onChange={(e) => setTargetPrice(e.target.value)}
-                className="w-full bg-transparent py-2.5 text-base font-mono font-bold text-[var(--paper)] outline-none"
+                onChange={(e) => {
+                  setTargetPrice(e.target.value);
+                  setOfferError("");
+                }}
+                aria-describedby="offer-price-help"
+                aria-invalid={Boolean(offerError)}
+                className="w-full bg-transparent py-3 text-lg font-mono font-bold text-[var(--paper)] outline-none"
               />
-            </div>
+            </label>
+            {offerError && <p className="mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">{offerError}</p>}
 
-            {/* 1-Click Discount Pills */}
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] uppercase font-bold text-[var(--mist-dim)] tracking-wider">Quick:</span>
+            {/* One-click suggestions */}
+            <div className="mt-3">
+              <span className="text-[10px] uppercase font-bold text-[var(--mist-dim)] tracking-wider">Quick suggestions</span>
+              <div className="grid grid-cols-3 gap-2 mt-1.5">
               {BUYER_QUICK_OFFERS.map((opt) => (
                 <button
                   key={opt.label}
                   type="button"
                   onClick={() => setQuickDiscount(opt.pct)}
-                  className="px-2.5 py-1 rounded-lg bg-[var(--surface2)] border border-[var(--line)] text-xs font-mono font-semibold text-[var(--mist)] hover:text-[var(--paper)] hover:border-[var(--teal)]/40 transition-colors"
+                  className={`rounded-lg border px-2 py-1.5 text-xs font-mono font-semibold transition-colors ${
+                    currentPrice === Math.round(product.basePrice * opt.pct)
+                      ? "border-[var(--teal)] bg-[var(--teal)]/10 text-[var(--teal)]"
+                      : "bg-[var(--surface2)] border-[var(--line)] text-[var(--mist)] hover:text-[var(--paper)] hover:border-[var(--teal)]/40"
+                  }`}
                 >
-                  {opt.label} ({fmtINR(Math.round(product.basePrice * opt.pct))})
+                  <span className="block">{opt.label}</span>
+                  <span className="block mt-0.5">{fmtINR(Math.round(product.basePrice * opt.pct))}</span>
                 </button>
               ))}
+              </div>
             </div>
           </div>
 
@@ -156,17 +199,9 @@ export function RFQModal({ product, onClose, onSubmit, initialPrice = null }) {
             tone="teal"
             icon={Send}
             className="flex-1 font-bold shadow-md"
-            onClick={() =>
-              onSubmit({
-                product,
-                targetPrice: Number(targetPrice || product.basePrice * 0.9),
-                leadTime: 1,
-                handoverType,
-                notes,
-              })
-            }
+            onClick={submitOffer}
           >
-            Send Offer ({fmtINR(currentPrice)})
+            Send Offer ({fmtINR(currentPrice || Math.round(product.basePrice * 0.9))})
           </PrimaryButton>
         </div>
       </div>
